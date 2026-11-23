@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="sobrou-versao" content="v33">
+<meta name="sobrou-versao" content="v35">
 <meta name="description" content="Controle de gastos que lê o extrato e mostra quanto sobrou.">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
 <meta name="theme-color" content="#F2F2F2">
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -422,6 +424,20 @@ svg.ic{width:22px;height:22px;flex:0 0 auto;display:block}
 .wlink{align-self:flex-start}
 textarea{font:inherit}
 #wishAdd,#v-desejos .btn.small,.sheet .actions .btn.small{min-height:44px}
+/* ===== Fase 9 ===== */
+.ptag{display:inline-block;margin-left:6px;padding:0 6px;border:1px solid var(--line,#d4d4d4);border-radius:999px;font-size:11px;line-height:16px;font-weight:600;color:var(--muted,#666);vertical-align:1px;white-space:nowrap}
+.acpick{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.acpick select{flex:1 1 150px;min-width:0}
+.acpick .accr{display:flex;align-items:center;gap:8px;min-height:44px;font-weight:600;cursor:pointer}
+.acpick .accr input{width:20px;height:20px;accent-color:#111}
+.paychips{margin-top:8px}
+.hist .acnm{display:flex;flex-direction:column;min-width:0}
+.hist .acsub{font-size:11px;line-height:1.3}
+#xferBtn{margin-top:12px;width:100%}
+#livreList b.num{white-space:nowrap;flex:none}
+#livreList .acrow{min-width:0}
+#availCard .cardfoot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
 /* ===== Fase 8 ===== */
 /* mascote: movimentos maiores (o desenho tem 256 de largura e aparece com ~60px) e partes internas animadas */
 .msc{will-change:transform}
@@ -603,7 +619,7 @@ textarea{font:inherit}
       <div class="big num" id="availBig">—</div>
       <p class="sm" id="availTxt">Carregando seus dados…</p>
       <p class="warn" id="availWarn" hidden></p>
-      <div class="cardfoot"><button class="link" id="availMore">Ver contas e cartões ›</button></div>
+      <div class="cardfoot"><button class="link" id="availMore">Ver contas e cartões ›</button><button class="link" id="availXfer">Transferir ›</button></div>
     </article>
 
     <div class="empty-month card" id="emptyMonth" hidden>
@@ -807,6 +823,7 @@ textarea{font:inherit}
       <div class="big num" id="livreBig">—</div>
       <p class="sm" id="livreTxt">Me conta o saldo das contas e quanto tem de fatura aberta. Eu tiro a fatura do saldo e te mostro quanto é seu de verdade.</p>
       <div class="hist" id="livreList"></div>
+      <button class="btn ghost" id="xferBtn">Transferir entre minhas contas</button>
     </article>
   </section>
 
@@ -1252,7 +1269,7 @@ function render(){
 }
 
 // ----- Início -----
-function balanceInfo(){
+function balanceInfo_old(){
   const b=state.balances; if (!b || !(b.accounts||[]).length) return null;
   const acc=b.accounts.reduce((a,x)=>a+(+x.value||0),0), cards=(b.cards||[]).reduce((a,x)=>a+(+x.value||0),0);
   const age = b.date ? Math.round((new Date(localISO()) - new Date(b.date))/864e5) : null;
@@ -1262,9 +1279,9 @@ function renderInicio(){
   const k=state.cur, list=geral(k), s=summarize(list), loading=state.store==="loading";
   // 1. dinheiro disponível (saldos − faturas; não mistura com orçamento)
   const bi=balanceInfo(), big=$("#availBig"), warn=$("#availWarn");
-  if (bi){ big.className="big num"+(bi.free<0?" neg":""); big.replaceChildren(...moneyEl(bi.free)); $("#availTxt").textContent=`Saldo nas contas menos faturas abertas.`; }
+  if (bi){ big.className="big num"+(bi.free<0?" neg":""); big.replaceChildren(...moneyEl(bi.free)); $("#availTxt").textContent = bi.moved ? `Saldo nas contas menos faturas abertas, já com o que entrou e saiu desde ${fmtD(bi.date)}.` : `Saldo nas contas menos faturas abertas.`; }
   else { big.className="big num"; big.textContent="—"; $("#availTxt").textContent = loading ? "Carregando seus dados…" : "Me conta o saldo das contas e as faturas abertas que eu mostro quanto é seu de verdade."; }
-  if (bi && (bi.age==null || bi.age>3)){ warn.hidden=false; warn.textContent = bi.date ? `Saldos de ${fmtD(bi.date)}, há ${bi.age} dias. Atualize pra ver o valor de hoje.` : "Saldos sem data. Atualize pra ver o valor de hoje."; } else warn.hidden=true;
+  if (bi && (bi.age==null || bi.age>7 || (bi.age>3 && !bi.moved))){ warn.hidden=false; warn.textContent = bi.date ? `Saldos de ${fmtD(bi.date)}, há ${bi.age} dias. Atualize pra ver o valor de hoje.` : "Saldos sem data. Atualize pra ver o valor de hoje."; } else warn.hidden=true;
   $("#availMore").textContent = bi ? "Ver contas e cartões ›" : "Anotar saldos ›";
   // vazio
   const empty = !loading && !list.length;
@@ -1320,7 +1337,7 @@ function renderInicio(){
 
 // ----- Gastos (lista completa, entradas e saídas) -----
 // filtros: tipo, categoria, conta, "a revisar", todos os meses; busca por nome, extrato, categoria, conta ou valor
-function fillSel(sel, vals, cur, first){ const want=[first,...vals].join("|"); if (sel.dataset.v!==want){ sel.replaceChildren(el("option",{value:""},first), ...vals.map(v=>el("option",{value:v},v))); sel.dataset.v=want; } sel.value = vals.includes(cur)?cur:""; return sel.value; }
+function fillSel(sel, vals, cur, first, lab){ const want=[first,...vals].join("|"); if (sel.dataset.v!==want){ sel.replaceChildren(el("option",{value:""},first), ...vals.map(v=>el("option",{value:v},lab?lab(v):v))); sel.dataset.v=want; } sel.value = vals.includes(cur)?cur:""; return sel.value; }
 function txMatch(t, q){
   if (!q) return true;
   if (norm([nameOf(t), t.desc, t.cat, t.acct||""].join(" ")).includes(q)) return true;
@@ -1333,7 +1350,7 @@ function renderGastos(){
   for (const b of document.querySelectorAll("#typeSeg button")) b.setAttribute("aria-selected", String(b.dataset.type===ft));
   const base = allM ? Object.keys(state.months).sort().flatMap(m=>geral(m)) : geral(k);
   const fc = state.fcat = fillSel($("#fCat"), [...new Set(base.map(t=>t.cat))].sort(), state.fcat, "Categorias");
-  const fa = state.facct = fillSel($("#fAcct"), [...new Set(base.map(t=>t.acct||"Sem conta"))].sort(), state.facct, "Contas");
+  const fa = state.facct = fillSel($("#fAcct"), [...new Set(base.map(t=>t.acct||"Sem conta"))].sort(), state.facct, "Contas", a=>a==="Sem conta"?a:acctLabel(a));
   $("#fRev").setAttribute("aria-pressed",String(rev)); $("#fAll").setAttribute("aria-pressed",String(allM));
   $("#fClear").hidden = !(q||fc||fa||rev||allM||ft!=="all");
   const nRev = base.filter(needsReview).length; $("#fRev").textContent = nRev ? `A revisar (${nRev})` : "A revisar";
@@ -1402,7 +1419,7 @@ function txRow(t, noDate, opts={}){
   const tag = t.link ? (t.link.dir==="in"?"acerto · ":"pagou dívida · ") : t.split ? "dividido · " : "";
   return el("button",{class:"txr"+(isIgnored(t.cat)||(t.link&&t.link.dir==="in")?" ign":""),"data-id":t.id,onclick:()=>openTx(t,opts),"aria-label":`${name}, ${brl(t.amount)}, ${fmtDay(t.date)}`},
     icoEl(icoSVG(t.cat)),
-    el("span",{class:"mid"}, el("span",{class:"t",title:t.desc},name), el("span",{class:"s"}, isPending(t)?el("b",{class:"pendtxt"},"a confirmar · "):(needsReview(t)?el("b",{class:"pendtxt"},"revisar · "):null), tag, [catShort(t.cat), t.acct].filter(Boolean).join(" · "))),
+    el("span",{class:"mid"}, el("span",{class:"t",title:t.desc},name), el("span",{class:"s"}, isPending(t)?el("b",{class:"pendtxt"},"a confirmar · "):(needsReview(t)?el("b",{class:"pendtxt"},"revisar · "):null), tag, [catShort(t.cat), bankName(t.acct)].filter(Boolean).join(" · "), payTag(t.acct)?el("span",{class:"ptag"},payTag(t.acct)):null)),
     el("span",{class:"end num"}, el("b",{class:t.amount>0?"pos":""},(t.amount>0?"+":"")+brl(shown)), t.split?el("span",{class:"s"},"de "+brl(t.amount)):(noDate?null:el("span",{class:"s"},fmtDay(t.date)))));
 }
 // =====================================================================
@@ -1523,7 +1540,7 @@ function openTx(t, opts={}){
         row("Nome", nameOf(t), el("div",{class:"soonf"},nameSrc(t))),
         row("No extrato", t.desc),
         row("Categoria", t.cat),
-        row("Conta", el("span",{class:"acctln"}, el("span",{class:"aico",html:""}), t.acct||"—")),
+        row("Conta", el("span",{class:"acctln"}, el("span",{class:"aico",html:""}), bankName(t.acct)||"—", payTag(t.acct)?el("span",{class:"ptag"},payTag(t.acct)):null)),
         row("Data", `${d}/${m}/${y}`),
         t.parc ? row("Parcela", `${t.parc.i} de ${t.parc.n} (total ${brl(t.parc.total)})`) : null,
         sp.length ? row("Dividido", sp.map(i=>`${i.who}: ${brl(i.total)} (${pendingOf(i)>0.004?"falta "+brl(pendingOf(i)):"pago"})`).join(" · ")) : null,
@@ -1539,8 +1556,7 @@ function openTx(t, opts={}){
     const drawSeg=()=>rc(seg,...[["out","Gasto"],["in","Entrada"]].map(([k,l])=>el("button",{role:"tab","aria-selected":String(kind===k),onclick:()=>{ kind=k; drawSeg(); const c=catSel.value; const ns=catSelect({cat:c,amount:kind==="out"?-1:1,desc:t.desc},()=>{}); ns.id="eCat"; catSel.replaceWith(ns); catSel=ns; }},l)));
     drawSeg();
     let catSel=catSelect(t,()=>{}); catSel.id="eCat";
-    const accts=[...new Set([...ACCTS.filter(a=>a!=="Outra conta"),"Dinheiro",t.acct||"Outra conta"])];
-    const acc=el("select",{id:"eAcct"}, accts.map(a=>el("option",{value:a,selected:a===t.acct},a)));
+    const acc=acctPick(t.acct||"Outra conta","eAcct");
     const dt=el("input",{id:"eDate",type:"date",value:t.date});
     const save=el("button",{class:"btn",id:"eSave",onclick:()=>{
       if (!canWrite()) return;
@@ -1685,7 +1701,7 @@ function openPayment(i, preTx){
   const list=el("div",{class:"tx"});
   const draw=()=>{ const c=pixCandidates(i); if (preTx && !c.includes(preTx)) c.unshift(preTx);
     rc(list,...(c.length?c:[]).map(t=>el("button",{class:"txr pick"+(pick===t?" on":""),"data-tx":t.id,onclick:()=>{ pick = pick===t?null:t; if (pick) v.value=fmtIn(Math.abs(t.amount)); draw(); }},
-      icoEl(pick===t?uiSVG("check"):icoSVG(t.cat)), el("span",{class:"mid"},el("span",{class:"t"},nameOf(t)),el("span",{class:"s"},fmtDay(t.date)+" · "+(t.acct||""))), el("span",{class:"end num"},el("b",null,brl(t.amount))))));
+      icoEl(pick===t?uiSVG("check"):icoSVG(t.cat)), el("span",{class:"mid"},el("span",{class:"t"},nameOf(t)),el("span",{class:"s"},fmtDay(t.date)+" · "+acctLabel(t.acct))), el("span",{class:"end num"},el("b",null,brl(t.amount))))));
     if (!c.length) list.append(el("p",{class:"muted sm"},"Nenhum Pix parecido encontrado. Dá pra anotar sem ligar."));
   };
   draw();
@@ -1792,14 +1808,14 @@ function undoImport(id){
   if (!canWrite()) return; const sn=takeSnap(); const touched=new Set(); const back=[];
   const ids=new Set();
   for (const [k,l] of Object.entries(state.months)){ const rm=l.filter(t=>t.imp&&t.imp.id===id); if (rm.length){ for (const t of rm){ ids.add(t.id); if (t.imp.replaced) back.push(t.imp.replaced); } state.months[k]=l.filter(t=>!(t.imp&&t.imp.id===id)); touched.add(k); } }
-  for (const t of back){ const k=t.date.slice(0,7); (state.months[k] ||= []).push(t); touched.add(k); }
+  for (const t of back){ const k=t.date.slice(0,7); (state.months[k] ||= []).push(t); touched.add(k); if (t.cofre){ const it=(state.savings.items||[]).find(i=>i.id===t.cofre.id); const mv=it&&(it.moves||[]).find(m=>m.id===t.cofre.move); if (mv){ mv.txId=t.id; saveSavings(); } } }
   unlinkShared(ids);
   for (const k of touched) saveMonth(k); render(); toastUndo("Importação desfeita.", sn);
 }
 function renderImports(){
   const box=$("#impList"); if (!box) return; const l=importsList(); rc(box,);
   if (!l.length){ box.append(el("p",{class:"muted sm"},"Nenhuma importação registrada ainda. As próximas aparecem aqui.")); return; }
-  for (const x of l) box.append(el("div",{class:"payrow"}, el("span",null,`${x.at?fmtD(x.at.slice(0,10)):""} · ${x.acct||""} · ${x.n} lançamento${x.n>1?"s":""}`), el("button",{class:"btn small ghost",onclick:()=>undoImport(x.id)},"Desfazer")));
+  for (const x of l) box.append(el("div",{class:"payrow"}, el("span",null,`${x.at?fmtD(x.at.slice(0,10)):""} · ${acctLabel(x.acct)} · ${x.n} lançamento${x.n>1?"s":""}`), el("button",{class:"btn small ghost",onclick:()=>undoImport(x.id)},"Desfazer")));
 }
 
 // =====================================================================
@@ -2052,7 +2068,7 @@ function openMove(it, type){
     const v=el("input",{id:"mvVal",inputmode:"decimal",placeholder:"0,00"}); const note=el("input",{id:"mvNote",placeholder:"Opcional"});
     const list=el("div",{class:"tx"});
     const draw=()=>{ if (type==="rendimento"){ rc(list); return; } const c=moveCands(type, parseMoney(v.value));
-      rc(list, ...c.map(t=>el("button",{class:"txr pick"+(pick===t?" on":""),"data-tx":t.id,onclick:()=>{ pick=pick===t?null:t; if(pick) v.value=fmtIn(Math.abs(t.amount)); draw(); }}, icoEl(pick===t?uiSVG("check"):icoSVG(t.cat)), el("span",{class:"mid"},el("span",{class:"t"},nameOf(t)),el("span",{class:"s"},fmtDay(t.date)+" · "+(t.acct||""))), el("span",{class:"end num"},el("b",null,brl(t.amount))))),
+      rc(list, ...c.map(t=>el("button",{class:"txr pick"+(pick===t?" on":""),"data-tx":t.id,onclick:()=>{ pick=pick===t?null:t; if(pick) v.value=fmtIn(Math.abs(t.amount)); draw(); }}, icoEl(pick===t?uiSVG("check"):icoSVG(t.cat)), el("span",{class:"mid"},el("span",{class:"t"},nameOf(t)),el("span",{class:"s"},fmtDay(t.date)+" · "+acctLabel(t.acct))), el("span",{class:"end num"},el("b",null,brl(t.amount))))),
         c.length?null:el("p",{class:"muted sm"},"Nenhuma transferência parecida nos extratos. Dá pra anotar sem ligar.")); };
     v.addEventListener("input",draw); draw();
     rc(panel, head(`${MOVE_LBL[type]}: ${it.name}`, close),
@@ -2443,7 +2459,7 @@ function openPlan(){
       el("p",{class:"status"},"Exemplo: recebendo R$ 2.000 e guardando 10%, você separa R$ 200 assim que o dinheiro cai. Começar com 10% já é ótimo, dá pra subir depois."), go));
   document.body.append(sh);
 }
-function renderLivre(){
+function renderLivre_old(){
   const card=$("#livreCard"); if (state.tab==="ifood"){ card.hidden=true; return; } card.hidden=false;
   const b=state.balances; const big=$("#livreBig"), txt=$("#livreTxt"), lst=$("#livreList"); lst.replaceChildren();
   if (!b || !(b.accounts||[]).length){ big.textContent="—"; return; }
@@ -2458,6 +2474,7 @@ function saveBalances(){ return persist("balances/main", state.balances, "Não c
 function openLivre(){
   if(!canWrite()) return;
   const b = state.balances ? JSON.parse(JSON.stringify(state.balances)) : {accounts:[{name:"Nubank",value:0},{name:"Itaú",value:0}],cards:[{name:"Fatura Nubank",value:0}],ifood:0};
+  { const L=liveBalances(); if (L){ L.accounts.forEach((x,i)=>{ if (b.accounts[i]) b.accounts[i].value=x.value; }); L.cards.forEach((x,i)=>{ if (b.cards[i]) b.cards[i].value=x.value; }); } }
   const close=()=>sh.remove();
   const box=el("div",{style:"display:flex;flex-direction:column;gap:12px"});
   const fmtIn = v => (+v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -2473,11 +2490,11 @@ function openLivre(){
   }
   const ifd=el("input",{value:fmtIn(b.ifood||0),inputmode:"decimal",id:"ifoodsaldo"});
   box.append(group("Saldo nas contas","accounts"), group("Faturas abertas","cards"), el("label",{class:"field"},"Saldo do iFood Benefícios",ifd));
-  const go=el("button",{class:"btn",onclick:()=>{ if(!canWrite()) return; b.accounts=b.accounts.filter(x=>x.name.trim()); b.cards=b.cards.filter(x=>x.name.trim()); b.ifood=parse(ifd.value); b.date=localISO(); b.ifoodAt=localISO(); state.balances=b; saveBalances(); close(); render(); toast("Saldos novinhos, anotados."); }},"Salvar saldos de hoje");
+  const go=el("button",{class:"btn",onclick:()=>{ if(!canWrite()) return; b.accounts=b.accounts.filter(x=>x.name.trim()); b.cards=b.cards.filter(x=>x.name.trim()); b.ifood=parse(ifd.value); b.date=localISO(); b.at=Date.now(); b.ifoodAt=localISO(); state.balances=b; saveBalances(); close(); render(); toast("Saldos novinhos, anotados."); }},"Salvar saldos de hoje");
   const sh=el("div",{class:"sheet",onclick:e=>{ if(e.target===sh) close(); }},
     el("div",{class:"panel",role:"dialog","aria-label":"Atualizar saldos"},
       el("div",{class:"hd"},el("h2",null,"Atualizar saldos"),el("button",{class:"close","aria-label":"Fechar",onclick:close},"✕")),
-      el("p",{class:"status"},"Dá uma olhada no app de cada banco e coloca os valores de hoje. As caixinhas não entram aqui, elas moram no Cofrinho."), box, go));
+      el("p",{class:"status"},"Já deixei os valores que eu calculei. Confere no app de cada banco e corrige o que estiver diferente: o que você salvar aqui vira o novo ponto de partida. As caixinhas não entram aqui, elas moram no Cofrinho."), box, go));
   document.body.append(sh);
 }
 
@@ -2564,7 +2581,8 @@ const ACCTS=["Nubank conta","Nubank cartão","Itaú conta","Itaú cartão","iFoo
 function guessAcct(text, name){ const n=norm(text.slice(0,6000)+" "+name); const card=/fatura/.test(n) && /pagamento minimo|vencimento/.test(n) && !/total de entradas|saldo inicial|saldo final/.test(n);
   if(/ifood/.test(n)&&/beneficio/.test(n)) return "iFood Benefícios";
   if(/nubank|nu pagamentos|nu financeira/.test(n)) return card?"Nubank cartão":"Nubank conta";
-  if(/itau|itaú|unibanco/.test(n)) return card?"Itaú cartão":"Itaú conta"; return null; }
+  if(/itau|itaú|unibanco/.test(n)) return card?"Itaú cartão":"Itaú conta";
+  if(/c6 bank|banco c6/.test(n) || /(^|[^a-z0-9])c6([^a-z0-9]|$)/.test(norm(name||""))) return card?"C6 cartão":"C6 conta"; return null; }
 
 // Repetidos: compara com o que já está guardado, sem apagar nada sozinho.
 //  exact  = mesma data, valor e descrição (ex.: mesmo extrato mandado 2x): vem desmarcado
@@ -2585,7 +2603,7 @@ function findDups(rows){
     //  parcela com o mesmo número (ex.: 2/3) no mesmo mês, ou mesmo nome em até 3 dias
     const pm = String(r.desc).match(/parcela (\d+)\s*\/\s*(\d+)/i);
     const man = cands.find(t=> t.parc ? (!!pm && +pm[1]===t.parc.i && +pm[2]===t.parc.n && t.date.slice(0,7)===r.date.slice(0,7))
-                                      : (t.src==="manual" && dayDiff(t.date,r.date)<=3 && sameName(t.desc,r.desc)));
+                                      : (t.src==="manual" && dayDiff(t.date,r.date)<=3 && (t.xfer || sameName(t.desc,r.desc))));
     if (man){ used.add(man.id); return {dup:"manual", match:man}; }
     const same = cands.find(t=>t.date===r.date && w1(t.desc) && w1(t.desc)===w1(r.desc));
     if (same){ used.add(same.id); return {dup:"same", match:same}; }
@@ -2660,7 +2678,7 @@ function openImport(){
     const items = rows.map((r,i)=>({...r, id:uid(), cat:categorize(r.desc,r.amount), keep: !(dd[i].dup==="exact"||dd[i].dup==="same"), dup:dd[i].dup, match:dd[i].match}));
     const cnt = t => items.filter(x=>x.dup===t).length;
     const dups = cnt("exact")+cnt("same");
-    const sel=el("select",{id:"acct"}, ACCTS.map(a=>el("option",{value:a,selected:a===(acct||(state.tab==="ifood"?IFOOD:"Outra conta"))},a)));
+    const sel=acctPick(acct||(state.tab==="ifood"?IFOOD:"Outra conta"),"acct");
     const list=el("div",{class:"tx prev"});
     const save=el("button",{class:"btn"});
     const upd=()=>{ const n=items.filter(x=>x.keep).length; save.textContent = n? `Guardar ${n} lançamento${n>1?"s":""}` : "Nada selecionado"; save.disabled=!n; };
@@ -2680,7 +2698,7 @@ function openImport(){
       for (const it of items.filter(x=>x.keep)){
         let replaced=null;
         if (it.dup==="manual" && it.match){ const mk=it.match.date.slice(0,7); replaced=JSON.parse(JSON.stringify(it.match)); state.months[mk]=(state.months[mk]||[]).filter(t=>t.id!==it.match.id); touched.add(mk); }
-        const k=it.date.slice(0,7); (state.months[k] ||= []).push({id:it.id,date:it.date,desc:it.desc,amount:it.amount,cat:it.cat,acct:a,imp:replaced?{...imp,replaced}:imp}); touched.add(k);
+        const k=it.date.slice(0,7); const nt={id:it.id,date:it.date,desc:it.desc,amount:it.amount,cat:it.cat,acct:a,imp:replaced?{...imp,replaced}:imp}; keepXfer(replaced, nt); (state.months[k] ||= []).push(nt); touched.add(k);
       }
       state.demo=false; if (a===IFOOD) state.view="ifood"; else if (state.view==="ifood") state.view="inicio"; for (const k of touched) saveMonth(k);
       state.cur=[...touched].sort().pop(); close(); render(); toastUndo("Pronto. Extrato guardado.", sn);
@@ -2688,7 +2706,7 @@ function openImport(){
     upd();
     body.replaceChildren(
       el("p",{class:"status"},`Encontrei ${items.length} lançamento${items.length>1?"s":""}: ${items.length-dups-cnt("near")-cnt("manual")} novo${items.length-dups-cnt("near")-cnt("manual")===1?"":"s"}`+(dups?`, ${dups} repetido${dups>1?"s":""} (desmarcado${dups>1?"s":""})`:"")+(cnt("manual")?`, ${cnt("manual")} que substitui${cnt("manual")>1?"m":""} o que você lançou à mão`:"")+(cnt("near")?`, ${cnt("near")} pra conferir`:"")+`. Toque em "entrada"/"saída" se algum estiver trocado.`),
-      el("label",{class:"field"},"De qual conta é esse extrato?",sel), list, save);
+      el("div",{class:"field"},el("span",null,"De qual banco é esse extrato?"),sel), list, save);
   }
 }
 
@@ -2754,8 +2772,11 @@ function openAdd(pre){
     drawCats();
     desc.addEventListener("input",()=>{ if(!cat){ const g=categorize(desc.value,amount); if(list.includes(g)&&!/^Outr/.test(g)){ cat=g; drawCats(); cat=null; const gEl=chips.querySelector(".on"); if(gEl){ gEl.classList.add("guess"); gEl.scrollIntoView({block:"nearest",inline:"center"}); } } } });
     const accs=el("div",{class:"chips"});
-    const AC=["Nubank cartão","Nubank conta","Itaú conta","Itaú cartão",IFOOD,"Dinheiro"]; if (acct && !AC.includes(acct)) AC.push(acct);
-    const drawAcc=()=>accs.replaceChildren(...AC.map(a=>el("button",{class:"chip"+(a===acct?" on":""),onclick:()=>{acct=a;drawAcc();}},a)));
+    const BK=pickBanks(acct); let bnk=bankName(acct)||"Nubank", cred=isCredit(acct); if (!BK.includes(bnk)) BK.push(bnk);
+    const pay=el("div",{class:"chips paychips"});
+    const drawAcc=()=>{ const plain=["iFood","Dinheiro","Outra conta"].includes(bnk); acct=bankToAcct(bnk, cred && !plain);
+      accs.replaceChildren(...BK.map(b=>el("button",{class:"chip"+(b===bnk?" on":""),onclick:()=>{bnk=b;drawAcc();}},b)));
+      pay.hidden=plain; pay.replaceChildren(el("button",{class:"chip"+(!cred?" on":""),id:"aDeb",onclick:()=>{cred=false;drawAcc();}},"Débito ou Pix"), el("button",{class:"chip"+(cred?" on":""),id:"aCred",onclick:()=>{cred=true;drawAcc();}},"Crédito")); };
     drawAcc();
     const pv=el("b",{class:"num"},parc+"x");
     const parcRow = kind==="out" ? el("div",{class:"optrow"},el("b",null,"Parcelado"),
@@ -2774,7 +2795,7 @@ function openAdd(pre){
         const ds=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(Math.min(dd,last)).padStart(2,"0")}`;
         const k=ds.slice(0,7);
         const vC = i===n-1 ? cents-eachC*(n-1) : eachC; // a última parcela leva os centavos que sobram
-        const tx={id:uid(),date:ds,desc:n>1?`${d} (parcela ${i+1}/${n})`:d,amount:(kind==="in"?1:-1)*vC/100,cat:finalCat,acct,src:"manual"};
+        const tx={id:uid(),date:ds,desc:n>1?`${d} (parcela ${i+1}/${n})`:d,amount:(kind==="in"?1:-1)*vC/100,cat:finalCat,acct,src:"manual",ts:Date.now()};
         if (n>1) tx.parc={g,i:i+1,n,total:cents/100};
         (state.months[k] ||= []).push(tx); if (!first) first=tx;
         touched.add(k);
@@ -2787,7 +2808,7 @@ function openAdd(pre){
     const hd=head(money(cents)+(kind==="in"?" de entrada":"")); const back1=el("button",{class:"close","aria-label":"Mudar o valor",onclick:step1},"‹"); hd.prepend(back1); hd.style.justifyContent="flex-start"; hd.lastChild.style.marginLeft="auto";
     panel.replaceChildren(hd,
       chips,
-      el("div",{class:"field"},el("span",null,"Onde"),accs),
+      el("div",{class:"field"},el("span",null,"Onde"),accs,pay),
       el("label",{class:"field"},"Nota",desc), el("label",{class:"field"},"Data",date),
       parcRow, backRow, learnRow, go);
   }
@@ -4251,6 +4272,156 @@ function renderIfoodSaldo(){
   mascotSay("#ifSay","ifood",state.cur);
 }
 
+// ===================== Fase 9: um nome por banco, saldo que anda sozinho, transferências =====================
+// Por dentro, cada lançamento continua com "Banco conta" (débito/Pix) ou "Banco cartão" (crédito).
+// Na tela aparece só o banco + Débito/Crédito.
+const BANK_CANON = {nubank:"Nubank", itau:"Itaú", c6:"C6", mercadopago:"Mercado Pago", caixa:"Caixa"};
+const isCredit = a => /\scart[aã]o$/i.test(String(a||""));
+function bankName(a){
+  a=String(a||"").trim(); if (!a) return "";
+  if (a===IFOOD) return "iFood"; if (a==="Outra conta"||a==="Dinheiro") return a;
+  return a.replace(/\s+(conta|cart[aã]o)$/i,"").trim() || a;
+}
+function payTag(a){ return (!a||a===IFOOD||a==="Dinheiro"||a==="Outra conta") ? "" : (isCredit(a)?"Crédito":"Débito"); }
+function acctLabel(a){ if (!a) return ""; const t=payTag(a); return bankName(a)+(t?" · "+t:""); }
+// nome livre (ex.: "Nubank (sem o Itaú)", "Fatura Nubank") -> chave do banco
+function bankKey(name){
+  const n=norm(String(name||"")).replace(/\(.*?\)/g," ").replace(/\b(conta|corrente|cartao|fatura|bank|banco)\b/g," ").replace(/\s+/g," ").trim();
+  const b=BANKS.find(b=>b.re.test(n)); return b ? b.id : (n.split(" ")[0]||"");
+}
+const acctBankKey = a => bankKey(bankName(a));
+const canonBank = name => BANK_CANON[bankKey(name)] || String(name||"").replace(/\(.*?\)/g,"").trim();
+function bankToAcct(b, credit){
+  if (b==="iFood") return IFOOD; if (b==="Dinheiro"||b==="Outra conta") return b;
+  return b+(credit?" cartão":" conta");
+}
+// bancos que fazem sentido mostrar pra escolher
+function pickBanks(cur){
+  const s=new Set(["Nubank","Itaú"]);
+  for (const t of Object.values(state.months).flat()) if (t.acct && t.acct!==IFOOD && t.acct!=="Dinheiro" && t.acct!=="Outra conta") s.add(bankName(t.acct));
+  for (const x of ((state.balances||{}).accounts||[])) if (x.name) s.add(canonBank(x.name));
+  if (cur) s.add(bankName(cur));
+  return [...s].filter(Boolean).concat(["iFood","Dinheiro"]).filter((v,i,a)=>a.indexOf(v)===i);
+}
+// seletor: banco + "foi no crédito?". Funciona como um <select>: tem .value (lê e escreve).
+function acctPick(cur, id){
+  cur = cur || "Outra conta";
+  const box=el("div",{class:"acpick",id});
+  const banks=pickBanks(cur); if (!banks.includes(bankName(cur))) banks.push(bankName(cur));
+  const sel=el("select",{"aria-label":"Banco"}, banks.map(b=>el("option",{value:b,selected:b===bankName(cur)},b)));
+  const cb=el("input",{type:"checkbox"}); cb.checked=isCredit(cur);
+  const lab=el("label",{class:"accr"}, cb, el("span",null,"Foi no crédito"));
+  const sync=()=>{ lab.hidden = ["iFood","Dinheiro","Outra conta"].includes(sel.value); };
+  sel.addEventListener("change",sync); sync();
+  box.append(sel, lab);
+  Object.defineProperty(box,"value",{get(){ return bankToAcct(sel.value, cb.checked && !lab.hidden); },
+    set(v){ const b=bankName(v); if (![...sel.options].some(o=>o.value===b)) sel.append(el("option",{value:b},b)); sel.value=b; cb.checked=isCredit(v); sync(); }});
+  return box;
+}
+
+// ----- saldo que anda sozinho -----
+// Cada conta parte do último saldo que você digitou (balances.date) e soma o que entrou/saiu
+// no débito/Pix daquele banco DEPOIS dessa data. Compra no crédito vai pra fatura; a fatura só sai da conta quando é paga.
+function liveBalances(){
+  const b=state.balances; if (!b) return null;
+  const since=b.date||"0000-00-00";
+  const after=Object.values(state.months).flat().filter(t=>t.acct && t.acct!==IFOOD && t.acct!=="Dinheiro" && (t.date>since || (t.date===since && b.at && t.ts && t.ts>b.at)));
+  const accounts=(b.accounts||[]).map(x=>{
+    const k=bankKey(x.name); const tx=after.filter(t=>!isCredit(t.acct) && acctBankKey(t.acct)===k);
+    const d=r2(tx.reduce((a,t)=>a+t.amount,0)); const base=+x.value||0;
+    return {name:x.name, base, delta:d, value:r2(base+d), n:tx.length};
+  });
+  const cards=(b.cards||[]).map(x=>{
+    const k=bankKey(x.name); const ct=after.filter(t=>isCredit(t.acct) && acctBankKey(t.acct)===k);
+    const buys=r2(-ct.filter(t=>t.cat!=="Pagamento de fatura").reduce((a,t)=>a+t.amount,0));
+    const payCard=ct.filter(t=>t.cat==="Pagamento de fatura" && t.amount>0).reduce((a,t)=>a+t.amount,0);
+    const payAcct=-after.filter(t=>!isCredit(t.acct) && t.cat==="Pagamento de fatura" && t.amount<0 && acctBankKey(t.acct)===k).reduce((a,t)=>a+t.amount,0);
+    const base=+x.value||0, d=r2(buys-Math.max(payCard,payAcct));
+    return {name:x.name, base, delta:d, value:r2(Math.max(0,base+d)), n:ct.length};
+  });
+  return {accounts, cards, date:b.date};
+}
+function balanceInfo(){
+  const L=liveBalances(); if (!L || !L.accounts.length) return null;
+  const acc=L.accounts.reduce((a,x)=>a+x.value,0), cards=L.cards.reduce((a,x)=>a+x.value,0);
+  const b=state.balances; const age = b.date ? Math.round((new Date(localISO()) - new Date(b.date))/864e5) : null;
+  const moved=L.accounts.concat(L.cards).some(x=>x.n);
+  return {acc:r2(acc), cards:r2(cards), free:r2(acc-cards), age, date:b.date, moved};
+}
+function renderLivre(){
+  const card=$("#livreCard"); if (state.tab==="ifood"){ card.hidden=true; return; } card.hidden=false;
+  const big=$("#livreBig"), txt=$("#livreTxt"), lst=$("#livreList"); lst.replaceChildren();
+  const L=liveBalances(); if (!L || !L.accounts.length){ big.textContent="—"; return; }
+  const bi=balanceInfo();
+  big.className="big num "+(bi.free<0?"neg":""); big.textContent=brl(bi.free);
+  txt.textContent = `Contas ${brl(bi.acc)} menos faturas abertas ${brl(bi.cards)}.` + (L.date ? ` Parte dos saldos que você conferiu em ${fmtD(L.date)}`+(bi.moved?" e soma o que entrou e saiu depois.":".") : " Sem data: atualize os saldos.");
+  const line=(x,kind)=>{
+    const sub = x.n ? `${brl(x.base)} em ${fmtD(L.date)} ${x.delta<0?"−":"+"} ${brl(Math.abs(x.delta))}${kind==="cartao"?" no crédito":""}` : null;
+    return el("div",null, el("span",{class:"acrow"},acctBadge(x.name,kind), el("span",{class:"acnm"}, x.name, sub?el("small",{class:"muted acsub"},sub):null)),
+      el("b",{class:"num"+(kind==="cartao"?" neg":"")}, (kind==="cartao"?"−":"")+brl(x.value)));
+  };
+  for (const x of L.accounts) lst.append(line(x,"conta"));
+  for (const x of L.cards) lst.append(line(x,"cartao"));
+}
+
+// ----- transferir entre minhas contas (e caixinhas) -----
+function acctForBalance(name){
+  const k=bankKey(name);
+  const seen=Object.values(state.months).flat().find(t=>t.acct && !isCredit(t.acct) && t.acct!==IFOOD && t.acct!=="Dinheiro" && t.acct!=="Outra conta" && acctBankKey(t.acct)===k);
+  return seen ? seen.acct : (BANK_CANON[k] || canonBank(name))+" conta";
+}
+function openTransfer(pre){
+  if (!canWrite()) return;
+  pre = pre && typeof pre==="object" && !(pre instanceof Event) ? pre : {};
+  const accs=((state.balances||{}).accounts||[]).filter(x=>x.name);
+  const pots=(state.savings.items||[]);
+  const opts=[...accs.map(x=>({k:"a:"+x.name, name:x.name, kind:"conta"})), ...pots.map(it=>({k:"c:"+it.id, name:it.name, kind:"cofre", it}))];
+  sheet("Transferir entre minhas contas",(panel,close)=>{
+    if (opts.length<2){ rc(panel, el("div",{class:"hd"},el("h2",null,"Transferir"),el("button",{class:"close","aria-label":"Fechar",onclick:close},"✕")),
+      el("p",{class:"sm"},"Primeiro anote o saldo das suas contas em Atualizar saldos (e as caixinhas no Cofrinho). Aí dá pra transferir entre elas."),
+      el("button",{class:"btn",onclick:()=>{ close(); openLivre(); }},"Atualizar saldos")); return; }
+    const mk=(id,def)=>el("select",{id}, opts.map(o=>el("option",{value:o.k,selected:o.k===def}, o.kind==="cofre"?"Caixinha: "+o.name:o.name)));
+    const from=mk("xFrom", pre.from || opts[0].k), to=mk("xTo", pre.to || (opts.find(o=>o.k!==(pre.from||opts[0].k))||opts[1]).k);
+    const v=el("input",{id:"xVal",inputmode:"decimal",placeholder:"0,00"});
+    const dt=el("input",{id:"xDate",type:"date",value:localISO()});
+    const info=el("p",{class:"sm muted",id:"xInfo"});
+    const cur=k=>{ const o=opts.find(x=>x.k===k); if (!o) return null; if (o.kind==="cofre") return lastBal(o.it); const L=liveBalances(); const a=L&&L.accounts.find(x=>x.name===o.name); return a?a.value:null; };
+    const upd=()=>{ const a=cur(from.value), b=cur(to.value), val=parseMoney(v.value)||0;
+      info.textContent = (a!=null&&b!=null) ? `Depois: ${opts.find(x=>x.k===from.value).name} ${brl(a-val)} · ${opts.find(x=>x.k===to.value).name} ${brl(b+val)}` : ""; };
+    for (const e of [from,to,v]) e.addEventListener(e===v?"input":"change",upd); upd();
+    const save=el("button",{class:"btn",id:"xSave",onclick:()=>{
+      if (!canWrite()) return; const val=parseMoney(v.value); if (!(val>0)){ toast("Coloque o valor."); return; }
+      if (from.value===to.value){ toast("Escolha duas contas diferentes."); return; }
+      const A=opts.find(x=>x.k===from.value), B=opts.find(x=>x.k===to.value); const d=dt.value||localISO();
+      if (A.kind==="cofre" && lastBal(A.it)-val < -0.004){ toast("A caixinha não tem esse saldo."); return; }
+      const sn=takeSnap(); const g=uid(); const touched=new Set(); let txA=null, txB=null;
+      const mkTx=(o,sign,other)=>{ const t={id:uid(), date:d, desc:sign<0?`Transferência pra ${other.kind==="cofre"?"caixinha "+other.name:canonBank(other.name)}`:`Transferência de ${other.kind==="cofre"?"caixinha "+other.name:canonBank(other.name)}`,
+        amount:r2(sign*val), cat:"Entre minhas contas", acct:acctForBalance(o.name), src:"manual", xfer:g, ok:true, ts:Date.now()};
+        (state.months[d.slice(0,7)] ||= []).push(t); touched.add(d.slice(0,7)); return t; };
+      if (A.kind==="conta") txA=mkTx(A,-1,B);
+      if (B.kind==="conta") txB=mkTx(B,+1,A);
+      if (B.kind==="cofre"){ addMove(B.it,{id:uid(), date:d, type:"deposito", amount:r2(val), note:A.kind==="cofre"?"Da caixinha "+A.name:"Transferência de "+canonBank(A.name)}, txA); setBal(B.it, lastBal(B.it)+val); }
+      if (A.kind==="cofre"){ addMove(A.it,{id:uid(), date:d, type:"retirada", amount:r2(val), note:B.kind==="cofre"?"Pra caixinha "+B.name:"Transferência pra "+canonBank(B.name)}, txB); setBal(A.it, lastBal(A.it)-val); }
+      if (A.kind==="cofre"||B.kind==="cofre") saveSavings();
+      for (const k of touched) saveMonth(k);
+      const B0=state.balances; const old = !!(B0 && B0.date && (d<B0.date || (d===B0.date && !B0.at)));
+      close(); render(); toastUndo(`Transferido ${brl(val)}.`+(old?" Data antes da última conferência de saldos: os saldos das contas não mudam.":" Saldos atualizados."), sn);
+    }},"Transferir");
+    rc(panel, el("div",{class:"hd"},el("h2",null,"Transferir entre minhas contas"),el("button",{class:"close","aria-label":"Fechar",onclick:close},"✕")),
+      el("label",{class:"field"},"Sai de",from), el("label",{class:"field"},"Vai pra",to),
+      el("label",{class:"field"},"Valor (R$)",v), el("label",{class:"field"},"Data",dt), info,
+      el("p",{class:"sm muted"},"Não conta como gasto nem como entrada. Se depois o extrato trouxer esse Pix, eu troco um pelo outro, sem duplicar."), save);
+  });
+}
+// extrato chegou com um Pix que você já tinha lançado como transferência: o do extrato fica, com o mesmo jeito
+function keepXfer(replaced, nt){
+  if (!replaced || !(replaced.xfer || replaced.cofre)) return;
+  nt.cat="Entre minhas contas"; nt.ok=true; if (replaced.xfer) nt.xfer=replaced.xfer; if (replaced.ts) nt.ts=replaced.ts;
+  if (replaced.cofre){ nt.cofre=replaced.cofre; const it=(state.savings.items||[]).find(i=>i.id===replaced.cofre.id); const mv=it&&(it.moves||[]).find(m=>m.id===replaced.cofre.move); if (mv){ mv.txId=nt.id; saveSavings(); } }
+}
+$("#xferBtn") && $("#xferBtn").addEventListener("click",()=>openTransfer());
+$("#availXfer") && $("#availXfer").addEventListener("click",()=>openTransfer());
+
 function afterLoad(){
   goalSel.value=String(state.config.goal);
   const has = Object.values(state.months).some(l=>l&&l.length);
@@ -4293,6 +4464,7 @@ window.__sobrou = {icoSVG, saveGoals, saveSavings, saveBalances, openIfoodSaldo,
   placeOf, spendOf, groupBy, anaTx, anaPeriod, compareMonths, limitStatus, limitNotes, limitsList, normLimits, normAnalise, insights, refundsOf, openLimit, backupCounts,
   SVG_ICONS, MASCOT, BANKS, bankOf, mascotEl, reactionFor, askSobrou, SobrouDados, decorate, unusualTx, normMascote,
   normWishes, normPics, simWish, wishInfo, wishFit, wishCommitted, wishesAlloc, wishTxCandidates, askDesejos, findWish, openWish, openWishEdit, openWishSim, openWishDone, openWishAlloc, openAdd, safeUrl, saveWishes, PRIO};
+Object.assign(window.__sobrou,{undoImport, guessAcct, liveBalances, balanceInfo, openTransfer, acctPick, acctLabel, bankName, summarize, geral, savedToCofre, openTx, openAdd, state, go});
 })();
 </script>
 <script>
