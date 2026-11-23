@@ -1,0 +1,22 @@
+# Lembrete diário do Sobrou: manda uma notificação genérica pro celular às 20h (Brasília).
+# Grátis (repositório público). O código do celular fica no secret SOBROU_PUSH, nunca aqui.
+name: Lembrete diário
+on:
+  schedule:
+    - cron: "0 23 * * *"   # 23h UTC = 20h em Brasília
+  workflow_dispatch: {}      # botão "Run workflow" pra testar na hora
+permissions:
+  contents: read
+jobs:
+  lembrete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --no-audit --no-fund web-push@3.6.7
+      - run: node .github/lembrete.js
+        env:
+          SOBROU_PUSH: ${{ secrets.SOBROU_PUSH }}
