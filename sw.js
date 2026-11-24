@@ -1,7 +1,7 @@
-// Sobrou: arquivos do app pra abrir sem internet. Versão: v44 (330a6de6)
+// Sobrou: arquivos do app pra abrir sem internet. Versão: v45 (bc486225)
 // Regra: a página (index.html) vem SEMPRE da internet primeiro; o cache só é usado sem conexão.
 // Assim uma versão nova chega na próxima vez que você abrir o app com internet.
-const CACHE = "sobrou-v44-330a6de6";
+const CACHE = "sobrou-v45-bc486225";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("sobrou-") && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
