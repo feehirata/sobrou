@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="sobrou-versao" content="v39">
+<meta name="sobrou-versao" content="v40">
 <meta name="description" content="Controle de gastos que lê o extrato e mostra quanto sobrou.">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
@@ -425,67 +425,114 @@ svg.ic{width:22px;height:22px;flex:0 0 auto;display:block}
 textarea{font:inherit}
 #wishAdd,#v-desejos .btn.small,.sheet .actions .btn.small{min-height:44px}
 /* ===== Nube (prévia) ===== */
-.nube .mb{fill:var(--nb);transition:fill .9s ease}
-.nube .nshadow{fill:var(--nd);opacity:.12}
+.nube svg{overflow:visible}
+.nube .mb{fill:var(--nb);transition:fill 1.2s ease}
+.nube .nshadow{fill:var(--nd);opacity:.1}
 .nube .nhl{stroke:#fff;opacity:.16}
-.nube[data-clima=nublado] .mb,.nube[data-clima=chuvoso] .mb{fill:var(--nbm)}
-.nube[data-clima=tempestade] .mb{fill:var(--nbs)}
-.nube .nw{opacity:0;transition:opacity .8s ease,transform .9s cubic-bezier(.3,.7,.3,1);transform-box:fill-box;transform-origin:50% 50%}
-.nube .nsun circle{fill:#F5C542}
-.nube .nrays path{stroke:#F5C542;stroke-width:6;stroke-linecap:round}
-.nube .ncl2 *,.nube .ncl3 *{fill:var(--ncl)}
-.nube[data-clima=tempestade] .ncl2 *,.nube[data-clima=tempestade] .ncl3 *{fill:#B9BCCB}
-.nube .ndrop{fill:#5B8DEF}
-.nube .nbolt path{fill:#F5C542;stroke:#C9861A;stroke-width:2;stroke-linejoin:round}
-.nube .nspark path{fill:#F5C542}
-.nube[data-pal=misto][data-e=apaixonado] .eye path{fill:var(--nacc)}
-.nube[data-pal=misto][data-clima=tempestade] .ncl2 *,.nube[data-pal=misto][data-clima=tempestade] .ncl3 *{fill:#D9C3C7}
-/* o que aparece em cada clima */
-.nube .nsun{transform:translateY(34px) scale(.8)}
+.nube .nw{opacity:0;transition:opacity .9s ease,transform 1.1s cubic-bezier(.3,.7,.3,1);transform-box:fill-box;transform-origin:50% 50%}
+.nube .nsunc{fill:#F6C343}
+.nube .nray{stroke:#F6C343;stroke-width:6;stroke-linecap:round}
+.nube .ncl2 *,.nube .ncl3 *{fill:var(--ncl);transition:fill 1s ease}
+.nube[data-clima=tempestade] .ncl2 *,.nube[data-clima=tempestade] .ncl3 *,.nube[data-clima=chuvoso] .ncl2 *{fill:var(--ncs)}
+.nube .ndrop{fill:var(--ndrop)}
+.nube .nbolt path{fill:#F6C343;stroke:#C98A1A;stroke-width:2;stroke-linejoin:round}
+.nube .nspark path{fill:#F6C343}
+/* o que aparece em cada clima (sem clima: só o Nube) */
+.nube .nsun{transform:translateY(40px) scale(.75)}
 .nube[data-clima=ensolarado] .nsun{opacity:1;transform:none}
 .nube[data-clima=ensolarado] .nspark{opacity:1}
-.nube[data-clima=parcial] .nsun{opacity:1;transform:translate(-6px,14px) scale(.85)}
-.nube[data-clima=parcial] .ncl3{opacity:1}
-.nube .ncl2{transform:translateX(-18px)} .nube .ncl3{transform:translateX(14px)}
-.nube[data-clima=nublado] .ncl2,.nube[data-clima=nublado] .ncl3,.nube[data-clima=chuvoso] .ncl3,.nube[data-clima=tempestade] .ncl2,.nube[data-clima=tempestade] .ncl3{opacity:1;transform:none}
-.nube[data-clima=parcial] .ncl3{transform:none}
+.nube[data-clima=parcial] .nsun{opacity:1;transform:translate(-8px,18px) scale(.85)}
+.nube .ncl2{transform:translateX(26px)} .nube .ncl3{transform:translateX(22px)}
+.nube[data-clima=parcial] .ncl3,.nube[data-clima=nublado] .ncl2,.nube[data-clima=nublado] .ncl3,.nube[data-clima=chuvoso] .ncl2,.nube[data-clima=chuvoso] .ncl3,.nube[data-clima=tempestade] .ncl2,.nube[data-clima=tempestade] .ncl3{opacity:1;transform:none}
 .nube[data-clima=chuvoso] .nrain{opacity:1}
-.nube[data-clima=tempestade] .nrain{opacity:.8}
+.nube[data-clima=tempestade] .nrain{opacity:.85}
 .nube[data-clima=tempestade] .nbolt{opacity:1}
+/* brecha de sol: coisa boa num mês nublado/chuvoso. O sol espia, a chuva diminui, o clima do mês continua */
+.nube[data-brecha] .nsun{opacity:1;transform:translate(-4px,22px) scale(.7)}
+.nube[data-brecha] .nrain{opacity:.35}
+.nube[data-brecha] .nbolt{opacity:0}
+/* ---- sempre vivo (leve): flutua, respira e pisca de vez em quando ---- */
+.nube .nfl{animation:nFloat 5.2s ease-in-out infinite}
+.nube .nb{transform-box:fill-box;transform-origin:50% 100%;animation:nBreath 5.2s ease-in-out infinite}
+.nube .eye{transform-box:fill-box;transform-origin:50% 50%}
+.nube:not(.play) .eye.bk{animation:nBlink 6s ease-in-out infinite}
+.nube:not(.play) .eye.eR.bk{animation-delay:.04s}
+.nube:not(.play) .bk .pu{animation:nWander 11s ease-in-out infinite}
+.nube:not(.play) .all{animation:none}
+.nube .br{transform-box:fill-box;transform-origin:50% 50%}
+.nube .face{transform-box:fill-box;transform-origin:50% 60%}
+.nube.nswap .face{animation:nSwap .38s cubic-bezier(.3,1.5,.5,1)}
+@keyframes nFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes nBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.018,.985)}}
+@keyframes nBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes nWander{0%,30%,100%{transform:none}40%,55%{transform:translateX(3px)}65%,80%{transform:translate(-3px,-1px)}}
+@keyframes nSwap{0%{transform:scale(1,1)}35%{transform:scale(1.06,.86)}100%{transform:none}}
+/* sobrancelhas acompanham a emoção quando ele reage */
+.nube.play[data-a=wow] .br,.nube.play[data-a=alert] .br,.nube.play[data-a=hop] .br{animation:nBrowUp .7s cubic-bezier(.2,1.6,.4,1)}
+.nube.play[data-a=sus] .bR{animation:nBrowUp 1.2s ease-in-out .2s}
+.nube.play[data-a=shake] .br,.nube.play[data-a=sad] .br,.nube.play[data-a=cry] .br{animation:nBrowKnit 1.2s ease-in-out}
+@keyframes nBrowUp{0%,100%{transform:none}40%{transform:translateY(-7px)}}
+@keyframes nBrowKnit{0%,100%{transform:none}30%,70%{transform:translateY(3px) rotate(0deg) scaleX(.9)}}
+/* ---- clima: toca uma vez quando muda (ou em Repetir) ---- */
+.nube.nplay[data-clima=ensolarado] .nsun{animation:nRise 1.3s cubic-bezier(.3,.7,.3,1) both}
+.nube.nplay[data-clima=ensolarado] .nray{animation:nRay .5s cubic-bezier(.2,1.5,.4,1) both;transform-box:fill-box;transform-origin:50% 100%}
+.nube.nplay[data-clima=ensolarado] .nspark path{animation:nTwinkle 1.1s ease-in-out 1s 2 both;transform-box:fill-box;transform-origin:50% 50%}
+.nube.nplay[data-clima=parcial] .ncl3{animation:nPass 4.2s ease-in-out both}
+.nube.nplay[data-clima=parcial] .bk .pu{animation:nFollow 4.2s ease-in-out}
+.nube.nplay[data-clima=nublado] .ncl2{animation:nInL 1.6s cubic-bezier(.3,.7,.3,1) both}
+.nube.nplay[data-clima=nublado] .ncl3{animation:nInR 1.6s cubic-bezier(.3,.7,.3,1) .2s both}
+.nube.nplay[data-clima=nublado] .bk .pu{animation:nSide 2.4s ease-in-out .4s}
+.nube.nplay[data-clima=chuvoso] .ndrop,.nube.nplay[data-clima=tempestade] .ndrop{animation:nFall 1s ease-in 4 both}
+.nube.nplay[data-clima=chuvoso] .bk .pu{animation:nUp 1.6s ease-in-out}
+.nube.nplay[data-clima=chuvoso] .nb{animation:nShiver .5s ease-in-out .3s 2}
+.nube.nplay[data-clima=tempestade] .nbolt{animation:nFlash 1.4s steps(1) .5s 2 both}
+.nube.nplay[data-clima=tempestade] .nb{animation:nJolt .5s cubic-bezier(.2,1.4,.4,1) .55s 2}
+.nube.nplay[data-clima=tempestade] .eye{animation:nStartle .5s ease-out .55s}
+.nube.nplay[data-brecha] .nsun{animation:nPeek 2.6s ease-in-out both}
 .nube .ndrop{transform-box:fill-box}
-/* animações: tocam uma vez quando o clima muda ou ao repetir; depois param */
-.nube.nplay .nrays{animation:nRays 2.4s ease-out 1;transform-box:view-box;transform-origin:0 0}
-.nube.nplay[data-clima=ensolarado] .nsun{animation:nRise 1.1s cubic-bezier(.3,.7,.3,1) both}
-.nube.nplay[data-clima=ensolarado] .nspark path{animation:nTwinkle 1.2s ease-in-out .6s 2 both;transform-box:fill-box;transform-origin:50% 50%}
-.nube.nplay[data-clima=nublado] .ncl2{animation:nDrift 3.6s ease-in-out 1}
-.nube.nplay[data-clima=nublado] .ncl3{animation:nDrift 3.6s ease-in-out .4s 1 reverse}
-.nube.nplay[data-clima=nublado] .pu{animation:mLook 1.6s ease-in-out .6s}
-.nube.nplay[data-clima=chuvoso] .ndrop,.nube.nplay[data-clima=tempestade] .ndrop{animation:nFall 1.1s ease-in 3}
-.nube.nplay[data-clima=tempestade] .nbolt{animation:nFlash 1.6s steps(1) .3s 2 both}
-.nube.nplay[data-clima=tempestade] .all{animation:mShake .4s ease-in-out .45s 2}
-.nube:not(.play) .ndrop{opacity:.9}
-@keyframes nRise{0%{opacity:0;transform:translateY(34px) scale(.8)}100%{opacity:1;transform:none}}
-@keyframes nRays{0%{transform:rotate(-25deg)}100%{transform:none}}
+@keyframes nRise{0%{opacity:0;transform:translateY(40px) scale(.75)}100%{opacity:1;transform:none}}
+@keyframes nRay{0%{opacity:0;transform:scaleY(0)}100%{opacity:1;transform:none}}
 @keyframes nTwinkle{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.4);opacity:.4}}
-@keyframes nDrift{0%,100%{transform:none}50%{transform:translateX(9px)}}
-@keyframes nFall{0%{transform:translateY(-10px);opacity:0}25%{opacity:1}100%{transform:translateY(16px);opacity:0}}
-@keyframes nFlash{0%{opacity:0}10%{opacity:1}22%{opacity:.2}30%{opacity:1}60%{opacity:1}100%{opacity:1}}
-/* pequeno: sem brilho, sem raio fino e sem sombra */
-.nube.small .nhl,.nube.small .nspark,.nube.small .nshadow,.nube.small .nrays{display:none}
+@keyframes nPass{0%{transform:translateX(26px);opacity:0}15%{opacity:1}55%{transform:translateX(-14px)}100%{transform:none;opacity:1}}
+@keyframes nFollow{0%,100%{transform:none}15%{transform:translate(4px,-3px)}55%{transform:translate(-1px,-4px)}80%{transform:translate(4px,-3px)}}
+@keyframes nInL{0%{transform:translateX(26px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes nInR{0%{transform:translateX(22px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes nSide{0%,100%{transform:none}30%,45%{transform:translateX(-4px)}65%,80%{transform:translateX(4px)}}
+@keyframes nFall{0%{transform:translateY(-12px);opacity:0}25%{opacity:1}100%{transform:translateY(18px);opacity:0}}
+@keyframes nUp{0%,100%{transform:none}25%,70%{transform:translateY(-5px)}}
+@keyframes nShiver{0%,100%{transform:none}25%{transform:translateX(-2px) scale(.99,1.01)}75%{transform:translateX(2px) scale(.99,1.01)}}
+@keyframes nFlash{0%{opacity:0}8%{opacity:1}18%{opacity:.15}26%{opacity:1}100%{opacity:1}}
+@keyframes nJolt{0%,100%{transform:none}20%{transform:scale(1.04,.93)}55%{transform:scale(.98,1.03)}}
+@keyframes nStartle{0%,100%{transform:none}30%{transform:scale(1.15)}}
+@keyframes nPeek{0%{opacity:0;transform:translate(-4px,48px) scale(.6)}40%,100%{opacity:1;transform:translate(-4px,22px) scale(.7)}}
+/* pequeno: sem brilho fino, sem sombra */
+.nube.small .nhl,.nube.small .nspark,.nube.small .nshadow,.nube.small .nray{display:none}
+.nube.small .nfl,.nube.small .nb{animation:none}
 @media (prefers-reduced-motion:reduce){.nube *{animation:none!important;transition:none!important}}
+.noanim .nube:not(.force) *{animation:none!important}
 /* área de teste */
 .nubetest{max-height:92vh;overflow:auto}
 .nubetest>*{flex-shrink:0}
 .nubetest .chips{flex-wrap:wrap;overflow:visible}
 .nubetest .chip{padding:7px 12px;font-size:.85rem}
-.nstage{display:flex;justify-content:center;align-items:flex-end;gap:18px;padding:14px 8px 6px;border-radius:16px;border:1px solid var(--line);min-height:210px}
+.nubetest .chip[data-fit=ctx]::after{content:" ~";color:var(--muted)}
+.nubetest .chip[data-fit=odd]{text-decoration:line-through;color:var(--muted);border-style:dashed}
+.nubetest .chip[data-fit=odd].on{color:var(--bg)}
+.nstage{display:flex;justify-content:center;align-items:flex-end;gap:18px;padding:18px 8px 8px;border-radius:16px;border:1px solid var(--line);min-height:230px;transition:background .6s}
 .nsmall{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:12px;border-radius:16px;border:1px solid var(--line)}
 .ncol{display:flex;flex-direction:column;align-items:center;gap:4px}
-.ncol small{color:var(--muted);font-size:.75rem}
+.ncol small{color:var(--muted);font-size:.75rem;text-align:center}
 .nbub{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 6px;border-radius:14px;font-size:.88rem;flex:1 1 220px;color:#1a1a1a}
+.nbub.nbig{border:1px solid var(--line);flex:none}
+.nfit{font-size:.85rem;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.nfit[data-fit=odd]{border-style:dashed;color:var(--muted)}
 .nh3{font-size:.95rem;margin:12px 0 2px}
-.chips .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .nexprs{flex-wrap:wrap}
+.nicons{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;padding:6px 0}
+.nicon{border-radius:22.5%;box-shadow:0 1px 3px rgba(0,0,0,.18);display:block}
+.nhome{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px;padding:22px 10px;border-radius:22px;background:linear-gradient(160deg,#5B6B86,#2E3446 60%,#1E2230)}
+.napp{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:.62rem;color:#fff;text-align:center;line-height:1.15}
+.napp.sel span{font-weight:700}
 
 /* ===== Fase 11 ===== */
 .prevrow small{font-size:.8rem}
@@ -4867,15 +4914,24 @@ function renderPrevisto(){
   rc($("#prevList"), ...L.map(x=>el("div",{class:"payrow prevrow"}, el("span",null,x.name, el("small",{class:"muted"}," · "+x.tag)), el("span",{class:"num"},brl(x.value)))));
 }
 
-// ===================== Nube (prévia): o clima das suas finanças =====================
+// ===================== Nube (prévia, 2ª rodada): o clima das suas finanças =====================
 // Proposta em teste. Não substitui o mascote atual em nenhuma tela: só aparece na área de teste em Ajustes.
-// Usa as MESMAS 18 expressões do mascote atual (MASCOT), o mesmo sistema de animação (.msc / MASCOT_ANIM)
-// e só troca o corpo (nuvem) e acrescenta camadas de clima por trás e pela frente.
+// Mantém as 18 expressões (mesmos nomes do MASCOT e mesmo sistema de animação .msc / MASCOT_ANIM),
+// mas com rostos redesenhados pra nuvem: olhos maiores, sobrancelhas e bocas mais distintas.
+// Paletas: cada uma é UMA família de cor. O corpo muda de tom conforme o clima, sempre dentro da família.
 const NUBE_PAL = {
-  azul:   {nome:"Azul + Baunilha",   body:"#3658BD", muted:"#5068B0", storm:"#2B3577", light:"#C3D5F6", dark:"#242C50", soft:"#F6E9BD", bg:"#FFFFFF"},
-  cereja: {nome:"Manteiga + Cereja", body:"#A62640", muted:"#9A4152", storm:"#6E1A2C", light:"#FAF0D7", dark:"#38252B", soft:"#FAF0D7", bg:"#FFF9ED", cloud:"#E8CDB0"},
-  // azul no dia a dia, em fundo manteiga; o cereja só aparece em alguns momentos (tempestade, amor)
-  misto:  {nome:"Azul + Manteiga, cereja nos alertas", body:"#3658BD", muted:"#5068B0", storm:"#A62640", light:"#C3D5F6", dark:"#242C50", soft:"#FAF0D7", bg:"#FFF9ED", acc:"#A62640"}
+  azul:    {nome:"Azul · branco", bg:"#FFFFFF", bubble:"#EEF2FA",
+            tone:{"":"#3658BD", ensolarado:"#3A64D4", parcial:"#3658BD", nublado:"#5367A6", chuvoso:"#425696", tempestade:"#2A3A7C"},
+            cloud:"#DCE3F3", cloudStorm:"#A3ACC4", dark:"#1A2452", drop:"#7E9DE8"},
+  nevoa:   {nome:"Azul · névoa fria", bg:"#EEF2F9", bubble:"#FFFFFF",
+            tone:{"":"#3658BD", ensolarado:"#3A64D4", parcial:"#3658BD", nublado:"#5367A6", chuvoso:"#425696", tempestade:"#2A3A7C"},
+            cloud:"#FFFFFF", cloudStorm:"#AAB3C9", dark:"#1A2452", drop:"#7E9DE8"},
+  cereja:  {nome:"Cereja · branco", bg:"#FFFFFF", bubble:"#F6F2F3",
+            tone:{"":"#A62640", ensolarado:"#B42E4B", parcial:"#A62640", nublado:"#91404F", chuvoso:"#813143", tempestade:"#661A2D"},
+            cloud:"#E8E2E3", cloudStorm:"#A99EA2", dark:"#3A1922", drop:"#B3BDCB"},
+  pedra:   {nome:"Cereja · cinza claro", bg:"#F3F2F1", bubble:"#FFFFFF",
+            tone:{"":"#A62640", ensolarado:"#B42E4B", parcial:"#A62640", nublado:"#91404F", chuvoso:"#813143", tempestade:"#661A2D"},
+            cloud:"#FFFFFF", cloudStorm:"#A99EA2", dark:"#3A1922", drop:"#AEB7C4"}
 };
 const NUBE_CLIMAS = {
   ensolarado: {nome:"Ensolarado", expr:"satisfeito", txt:"Tudo no controle."},
@@ -4884,40 +4940,213 @@ const NUBE_CLIMAS = {
   chuvoso:    {nome:"Chuvoso", expr:"preocupado", txt:"Gastou mais do que o planejado."},
   tempestade: {nome:"Tempestade", expr:"estressado", txt:"Hora de reorganizar e ajustar o plano."}
 };
-// corpo: nuvem fofa de lobos redondos (como a prancha), cobrindo a mesma área do rosto do mascote atual
-const NUBE_BODY = `<g class="mb nb">
-  <ellipse class="nshadow" cx="128" cy="226" rx="88" ry="9"/>
+const NUBE_ORDEM = ["ensolarado","parcial","nublado","chuvoso","tempestade"];
+// corpo: nuvem fofa de lobos redondos
+const NUBE_BODY = `<ellipse class="nshadow" cx="132" cy="228" rx="86" ry="8"/><g class="mb nb">
   <circle cx="66" cy="160" r="46"/><circle cx="112" cy="104" r="58"/><circle cx="172" cy="106" r="46"/>
   <circle cx="206" cy="156" r="40"/><circle cx="150" cy="178" r="44"/><circle cx="98" cy="180" r="40"/>
   <rect x="52" y="140" width="164" height="72" rx="36"/>
   <path class="nhl" d="M 74 96 C 82 70 108 56 132 60" stroke-width="8" stroke-linecap="round" fill="none"/>
 </g>`;
-// camadas de clima: atrás (sol, nuvem que passa) e na frente (chuva, raio, vento, brilhos)
-const NUBE_BACK = `<g transform="translate(198 72)"><g class="nw nsun"><g class="nrays">${[0,45,90,135,180,225,270,315].map(a=>`<path d="M 0 -40 V -52" transform="rotate(${a})"/>`).join("")}</g><circle r="28"/></g></g>
-<g transform="translate(14 64)"><g class="nw ncl2"><circle cx="0" cy="0" r="16"/><circle cx="20" cy="-8" r="20"/><circle cx="40" cy="2" r="14"/><rect x="-6" y="-2" width="52" height="16" rx="8"/></g></g>
-<g transform="translate(196 34)"><g class="nw ncl3"><circle cx="0" cy="0" r="12"/><circle cx="16" cy="-6" r="15"/><circle cx="31" cy="1" r="11"/><rect x="-4" y="-1" width="39" height="12" rx="6"/></g></g>`;
-const NUBE_FRONT = `<g class="nw nrain">${[[76,212,0],[108,226,.35],[140,212,.15],[172,226,.5],[92,234,.7],[156,236,.85]].map(([x,y,d])=>`<path class="ndrop" style="animation-delay:${d}s" d="M ${x} ${y} q -8 13 0 17 q 8 -4 0 -17 Z"/>`).join("")}</g>
-<g class="nw nbolt"><path d="M 206 176 l -16 26 h 13 l -8 26 l 30 -36 h -15 l 10 -16 Z"/></g>
-<g class="nw nspark"><path d="M 34 70 l 4 10 l 10 4 l -10 4 l -4 10 l -4 -10 l -10 -4 l 10 -4 Z"/><path d="M 226 56 l 3 7 l 7 3 l -7 3 l -3 7 l -3 -7 l -7 -3 l 7 -3 Z"/></g>`;
-function nubeFace(expr, pal){ const P=NUBE_PAL[pal]||NUBE_PAL.azul; return (MASCOT[expr]||MASCOT.neutro).replace(/#111111/g, P.dark); }
-// tamanho pequeno (até 48px): sem detalhes finos que viram borrão
+// ---------- rostos ----------
+// W = branco, D = cor escura da paleta (pupilas, boca aberta, detalhes)
+const NW="#FFFFFF", ND="#111111";
+const NX={L:104, R:162}, NY=140, NM=133;
+function nEye(s, t, o){
+  o=o||{}; const x=NX[s]+(o.x||0), y=NY+(o.y||0), c=`eye e${s}`, dx=o.dx||0, dy=o.dy||0, sw=`stroke="${NW}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  const pu=(r)=>`<g class="pu"><circle cx="${x+dx}" cy="${y+3+dy}" r="${r}" fill="${ND}"/><circle cx="${x+dx+r*.35}" cy="${y-1+dy}" r="${Math.max(2,r*.3)}" fill="${NW}"/></g>`;
+  switch(t){
+    case "open":  return `<g class="${c} bk"><ellipse cx="${x}" cy="${y}" rx="${o.rx||17}" ry="${o.ry||20}" fill="${NW}"/>${pu(o.r||9)}</g>`;
+    case "lid":   return `<g class="${c}"><path d="M ${x-17} ${y-1} H ${x+17} A 17 17 0 0 1 ${x-17} ${y-1} Z" fill="${NW}"/><g class="pu"><circle cx="${x+dx}" cy="${y+7}" r="8" fill="${ND}"/></g></g>`;
+    case "sleep": return `<g class="${c}"><path d="M ${x-14} ${y+2} Q ${x} ${y+12} ${x+14} ${y+2}" ${sw}/></g>`;
+    case "happy": return `<g class="${c}"><path d="M ${x-14} ${y+5} Q ${x} ${y-13} ${x+14} ${y+5}" ${sw}/></g>`;
+    case "gt":    return `<g class="${c}"><path d="${s==="L" ? `M ${x-11} ${y-12} L ${x+10} ${y} L ${x-11} ${y+12}` : `M ${x+11} ${y-12} L ${x-10} ${y} L ${x+11} ${y+12}`}" ${sw}/></g>`;
+    case "heart": return `<g class="${c}"><path d="M ${x} ${y+16} C ${x-30} ${y-4} ${x-14} ${y-22} ${x} ${y-8} C ${x+14} ${y-22} ${x+30} ${y-4} ${x} ${y+16} Z" fill="${NW}"/></g>`;
+    case "star":  return `<g class="${c}"><path d="M ${x} ${y-19} L ${x+5.5} ${y-6} L ${x+19} ${y-5} L ${x+8.5} ${y+4} L ${x+12} ${y+18} L ${x} ${y+10} L ${x-12} ${y+18} L ${x-8.5} ${y+4} L ${x-19} ${y-5} L ${x-5.5} ${y-6} Z" fill="${NW}" stroke="${NW}" stroke-width="3" stroke-linejoin="round"/></g>`;
+  }
+}
+function nBrow(s, t){
+  if (!t) return ""; const x=NX[s], y=NY-30, m = s==="L" ? 1 : -1, a=`stroke="${NW}" stroke-width="7" stroke-linecap="round" fill="none"`;
+  const d = {
+    flat:    `M ${x-11} ${y} H ${x+11}`,
+    soft:    `M ${x-11} ${y+1} Q ${x} ${y-5} ${x+11} ${y+1}`,
+    up:      `M ${x-12} ${y-4} Q ${x} ${y-14} ${x+12} ${y-4}`,
+    worried: `M ${x-12*m} ${y+3} L ${x+11*m} ${y-6}`,
+    angry:   `M ${x-12*m} ${y-6} L ${x+11*m} ${y+4}`,
+    low:     `M ${x-11} ${y+6} H ${x+11}`
+  }[t];
+  return `<g class="br b${s}"><path d="${d}" ${a}/></g>`;
+}
+function nMouth(t){
+  const sw=`stroke="${NW}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"`, y=178;
+  const m = {
+    line:   `<path d="M ${NM-9} ${y} H ${NM+9}" ${sw}/>`,
+    smile:  `<path d="M ${NM-15} ${y-4} Q ${NM} ${y+10} ${NM+15} ${y-4}" ${sw}/>`,
+    tiny:   `<path d="M ${NM-7} ${y-2} Q ${NM} ${y+4} ${NM+7} ${y-2}" ${sw}/>`,
+    open:   `<path d="M ${NM-18} ${y-6} Q ${NM} ${y+26} ${NM+18} ${y-6} Z" fill="${ND}" stroke="${ND}" stroke-width="3" stroke-linejoin="round"/><path d="M ${NM-8} ${y+9} Q ${NM} ${y+4} ${NM+8} ${y+9} Q ${NM} ${y+15} ${NM-8} ${y+9} Z" fill="#E86A7E"/>`,
+    o:      `<ellipse cx="${NM+4}" cy="${y+1}" rx="6" ry="7" fill="${ND}"/>`,
+    bigo:   `<ellipse cx="${NM}" cy="${y+3}" rx="9" ry="12" fill="${ND}"/>`,
+    wavy:   `<path d="M ${NM-17} ${y+2} q 5.5 -7 11 0 q 5.5 7 11 0 q 5.5 -7 11 0" ${sw}/>`,
+    frown:  `<path d="M ${NM-13} ${y+7} Q ${NM} ${y-7} ${NM+13} ${y+7}" ${sw}/>`,
+    zig:    `<path d="M ${NM-17} ${y+3} l 6 -6 l 6 6 l 6 -6 l 6 6 l 6 -6" ${sw}/>`,
+    smirk:  `<path d="M ${NM-10} ${y+2} Q ${NM+6} ${y+4} ${NM+14} ${y-6}" ${sw}/>`,
+    side:   `<path d="M ${NM-14} ${y+1} H ${NM+2}" ${sw}/>`,
+    cry:    `<path d="M ${NM-15} ${y+12} Q ${NM-8} ${y-6} ${NM} ${y-2} Q ${NM+8} ${y-6} ${NM+15} ${y+12} Z" fill="${ND}" stroke="${ND}" stroke-width="3" stroke-linejoin="round"/>`,
+    hungry: `<path d="M ${NM-16} ${y-4} Q ${NM} ${y+20} ${NM+16} ${y-4} Z" fill="${ND}" stroke="${ND}" stroke-width="3" stroke-linejoin="round"/><path class="drool" d="M ${NM+10} ${y+4} q -5 10 0 14 q 5 -4 0 -14 Z" fill="#CFE3FF"/>`,
+    proud:  `<path d="M ${NM-13} ${y-2} Q ${NM+2} ${y+9} ${NM+16} ${y-7}" ${sw}/>`
+  }[t];
+  return `<g class="mo">${m}</g>`;
+}
+const nBlush = `<g class="blush"><ellipse cx="78" cy="166" rx="11" ry="6" fill="${NW}" opacity=".22"/><ellipse cx="188" cy="166" rx="11" ry="6" fill="${NW}" opacity=".22"/></g>`;
+// detalhes ficam no canto de cima à ESQUERDA: o canto direito é do sol e das nuvens do clima
+const nAccL = g => `<g transform="translate(-186 6)">${g}</g>`;
+const nAcc0 = {
+  lines: `<g class="acc"><path d="M 240 52 l -6 -14 M 228 66 l -13 -8 M 224 84 h -13" stroke="${ND}" stroke-width="6" stroke-linecap="round"/></g>`,
+  bang:  `<g class="acc"><path d="M 226 38 v 26" stroke="${ND}" stroke-width="8" stroke-linecap="round"/><circle cx="226" cy="78" r="5" fill="${ND}"/></g>`,
+  quest: `<g class="acc"><path d="M 216 50 q 0 -14 13 -14 q 13 0 13 12 q 0 9 -12 13 v 7" stroke="${ND}" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="230" cy="80" r="4" fill="${ND}"/></g>`,
+  sweat: `<g class="acc"><path d="M 210 92 q -9 15 0 20 q 9 -5 0 -20 Z" fill="#CFE3FF" stroke="${ND}" stroke-width="2.5"/></g>`,
+  dots:  `<circle class="dot" cx="196" cy="58" r="5" fill="${ND}"/><circle class="dot" cx="214" cy="48" r="6" fill="${ND}"/><circle class="dot" cx="234" cy="36" r="7" fill="${ND}"/>`,
+  zz:    `<g class="acc"><path d="M 204 54 h 14 l -14 16 h 14 M 226 30 h 11 l -11 12 h 11" stroke="${ND}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`,
+  spark: `<g class="acc"><path d="M 224 34 l 4 11 l 11 4 l -11 4 l -4 11 l -4 -11 l -11 -4 l 11 -4 Z" fill="#F6C343"/><path d="M 30 92 l 3 7 l 7 3 l -7 3 l -3 7 l -3 -7 l -7 -3 l 7 -3 Z" fill="#F6C343"/></g>`,
+  coin:  `<g class="acc"><circle cx="222" cy="52" r="15" fill="#F6C343" stroke="${ND}" stroke-width="3"/><path d="M 222 44 v 16" stroke="${ND}" stroke-width="3.5" stroke-linecap="round"/></g>`,
+  heart: `<g class="acc"><path d="M 224 64 C 206 52 214 38 224 47 C 234 38 242 52 224 64 Z" fill="${ND}"/></g>`,
+  tears: `<path class="tear tL" d="M 92 156 q -8 16 0 22 q 8 -6 0 -22 Z" fill="#CFE3FF"/><path class="tear tR" d="M 174 156 q -8 16 0 22 q 8 -6 0 -22 Z" fill="#CFE3FF"/>`,
+  tear1: `<path class="tear tR" d="M 176 160 q -6 12 0 16 q 6 -4 0 -16 Z" fill="#CFE3FF"/>`
+};
+const nAcc = {...nAcc0}; for (const k of ["lines","bang","quest","dots","zz","coin","heart"]) nAcc[k]=nAccL(nAcc0[k]);
+// receita de cada expressão: olhos, sobrancelhas, boca e detalhes. Personalidade do mascote atual mantida
+// (>< no apertado e no animado, coração no apaixonado, baba no com fome, zz no sonolento, ... no pensando).
+const NUBE_FACES = {
+  "neutro":         ()=> nEye("L","open")+nEye("R","open")+nBrow("L","flat")+nBrow("R","flat")+nMouth("line"),
+  "curioso":        ()=> nEye("L","open",{dx:4,dy:-3})+nEye("R","open",{rx:18,ry:22,dx:4,dy:-3})+nBrow("L","flat")+nBrow("R","up")+nMouth("o")+nAcc.quest,
+  "satisfeito":     ()=> nEye("L","happy")+nEye("R","happy")+nBrow("L","soft")+nBrow("R","soft")+nMouth("smile")+nBlush,
+  "comemorando":    ()=> nEye("L","happy")+nEye("R","happy")+nBrow("L","up")+nBrow("R","up")+nMouth("open")+nBlush+nAcc.lines,
+  "alcançando-meta":()=> nEye("L","star")+nEye("R","star")+nBrow("L","up")+nBrow("R","up")+nMouth("open")+nAcc.spark,
+  "animado":        ()=> nEye("L","gt")+nEye("R","gt")+nBrow("L","up")+nBrow("R","up")+nMouth("open")+nAcc.lines,
+  "preocupado":     ()=> nEye("L","open",{dy:3})+nEye("R","open",{dy:3})+nBrow("L","worried")+nBrow("R","worried")+nMouth("wavy"),
+  "estressado":     ()=> nEye("L","gt")+nEye("R","gt")+nBrow("L","worried")+nBrow("R","worried")+nMouth("zig")+nAcc.sweat,
+  "alerta":         ()=> nEye("L","open",{r:8})+nEye("R","open",{r:8})+nBrow("L","up")+nBrow("R","up")+nMouth("line")+nAcc.bang,
+  "chorando":       ()=> nEye("L","gt")+nEye("R","gt")+nBrow("L","worried")+nBrow("R","worried")+nMouth("cry")+nAcc.tears,
+  "surpreso":       ()=> nEye("L","open",{rx:18,ry:23,r:6})+nEye("R","open",{rx:18,ry:23,r:6})+nBrow("L","up")+nBrow("R","up")+nMouth("bigo")+nAcc.lines,
+  "pensando":       ()=> nEye("L","open",{dx:-5,dy:-7})+nEye("R","open",{dx:-5,dy:-7})+nBrow("L","up")+nBrow("R","flat")+nMouth("side")+nAcc.dots,
+  "desconfiado":    ()=> nEye("L","lid",{dx:6})+nEye("R","lid",{dx:6})+nBrow("L","low")+nBrow("R","up")+nMouth("smirk"),
+  "triste":         ()=> nEye("L","open",{dy:6})+nEye("R","open",{dy:6})+nBrow("L","worried")+nBrow("R","worried")+nMouth("frown")+nAcc.tear1,
+  "apaixonado":     ()=> nEye("L","heart")+nEye("R","heart")+nBrow("L","soft")+nBrow("R","soft")+nMouth("tiny")+nBlush+nAcc.heart,
+  "com-fome":       ()=> nEye("L","open",{dy:5,dx:2})+nEye("R","open",{dy:5,dx:-2})+nBrow("L","up")+nBrow("R","up")+nMouth("hungry"),
+  "economizando":   ()=> nEye("L","open")+nEye("R","happy")+nBrow("L","flat")+nBrow("R","soft")+nMouth("proud")+nAcc.coin,
+  "sonolento":      ()=> nEye("L","sleep")+nEye("R","sleep")+nBrow("L","low")+nBrow("R","low")+nMouth("o")+nAcc.zz
+};
+function nubeFace(expr, pal){ const P=NUBE_PAL[pal]||NUBE_PAL.azul; return `<g class="face">${(NUBE_FACES[expr]||NUBE_FACES.neutro)().replace(/#111111/g, P.dark)}</g>`; }
+// ---------- camadas de clima ----------
+// atrás: sol (com raios que aparecem um a um) e nuvens que passam; na frente: chuva, raio
+const NUBE_BACK = `<g transform="translate(200 74)"><g class="nw nsun"><g class="nrays">${[0,45,90,135,180,225,270,315].map((a,i)=>`<g transform="rotate(${a})"><path class="nray" style="animation-delay:${(.35+i*.07).toFixed(2)}s" d="M 0 -40 V -54"/></g>`).join("")}</g><circle class="nsunc" r="29"/></g></g>
+<g transform="translate(212 110)"><g class="nw ncl2"><circle cx="0" cy="0" r="16"/><circle cx="20" cy="-8" r="20"/><circle cx="40" cy="2" r="14"/><rect x="-6" y="-2" width="52" height="16" rx="8"/></g></g>
+<g transform="translate(196 36)"><g class="nw ncl3"><circle cx="0" cy="0" r="12"/><circle cx="16" cy="-6" r="15"/><circle cx="31" cy="1" r="11"/><rect x="-4" y="-1" width="39" height="12" rx="6"/></g></g>`;
+const NUBE_FRONT = `<g class="nw nrain">${[[78,206,0],[110,220,.45],[142,206,.2],[174,220,.7],[94,232,.95],[158,234,1.2],[126,240,.6]].map(([x,y,d])=>`<path class="ndrop" style="animation-delay:${d}s" d="M ${x} ${y} q -7 12 0 16 q 7 -4 0 -16 Z"/>`).join("")}</g>
+<g class="nw nbolt"><path d="M 214 170 l -16 26 h 13 l -8 26 l 30 -36 h -15 l 10 -16 Z"/></g>
+<g class="nw nspark"><path d="M 238 128 l 4 10 l 10 4 l -10 4 l -4 10 l -4 -10 l -10 -4 l 10 -4 Z"/><path d="M 244 176 l 3 6 l 6 3 l -6 3 l -3 6 l -3 -6 l -6 -3 l 6 -3 Z"/></g>`;
+function nubeVars(P, clima){ return `--nb:${P.tone[clima||""]};--ncl:${P.cloud};--ncs:${P.cloudStorm};--nd:${P.dark};--ndrop:${P.drop};`; }
 function nubeEl(expr, o){
-  o=o||{}; expr = MASCOT[expr] ? expr : "neutro"; const pal=NUBE_PAL[o.pal]?o.pal:"azul"; const P=NUBE_PAL[pal]; const clima=NUBE_CLIMAS[o.clima]?o.clima:"";
+  o=o||{}; expr = NUBE_FACES[expr] ? expr : "neutro"; const pal=NUBE_PAL[o.pal]?o.pal:"azul"; const P=NUBE_PAL[pal]; const clima=NUBE_CLIMAS[o.clima]?o.clima:"";
   const w=el("span",{class:"msc nube"+((o.size||56)<=48?" small":""),"data-e":expr,"data-a":MASCOT_ANIM[expr]||"idle","data-pal":pal,"data-clima":clima,
-    style:`--nb:${P.body};--nbm:${P.muted};--nbs:${P.storm};--nl:${P.light};--ncl:${P.cloud||P.light};--nd:${P.dark};--nsoft:${P.soft};--nacc:${P.acc||"#fff"};`+(o.size?`width:${o.size}px;height:${o.size}px`:"")});
-  w.innerHTML=`<svg viewBox="0 0 256 256" role="img" aria-label="Nube ${MASCOT_LBL[expr]||expr}${clima?", "+NUBE_CLIMAS[clima].nome.toLowerCase():""}" focusable="false"><g class="nback">${NUBE_BACK}</g><g class="all">${NUBE_BODY}${nubeFace(expr,pal)}</g><g class="nfront">${NUBE_FRONT}</g></svg>`;
+    style:nubeVars(P,clima)+(o.size?`width:${o.size}px;height:${o.size}px`:"")});
+  if (o.brecha) w.dataset.brecha="1";
+  w.innerHTML=`<svg viewBox="0 0 256 256" role="img" aria-label="Nube ${MASCOT_LBL[expr]||expr}${clima?", "+NUBE_CLIMAS[clima].nome.toLowerCase():""}" focusable="false"><g class="nback">${NUBE_BACK}</g><g class="nfl"><g class="all">${NUBE_BODY}${nubeFace(expr,pal)}</g></g><g class="nfront">${NUBE_FRONT}</g></svg>`;
   return w;
 }
-// troca de clima com transição (a chuva para e o sol volta, por exemplo). Não mexe em dado nenhum.
-function nubeSetClima(w, clima, expr){
-  if (!w) return; clima = NUBE_CLIMAS[clima] ? clima : "";
-  if (expr && MASCOT[expr] && expr!==w.dataset.e){ const pal=w.dataset.pal; const g=w.querySelector(".all"); g.innerHTML=NUBE_BODY+nubeFace(expr,pal); w.dataset.e=expr; w.dataset.a=MASCOT_ANIM[expr]||"idle"; }
-  w.dataset.clima=clima; nubePlay(w);
+// troca de expressão com uma "piscada" (o rosto se ajeita) e troca de clima com transição suave de cor e de elementos
+function nubeSetExpr(w, expr){
+  if (!w || !NUBE_FACES[expr] || expr===w.dataset.e) return;
+  const g=w.querySelector(".face"); const tmp=document.createElementNS("http://www.w3.org/2000/svg","g"); tmp.innerHTML=nubeFace(expr,w.dataset.pal); g.replaceWith(tmp.firstChild);
+  w.dataset.e=expr; w.dataset.a=MASCOT_ANIM[expr]||"idle"; w.classList.remove("nswap"); void w.getBoundingClientRect(); w.classList.add("nswap");
 }
-// toca a animação uma vez (rosto + clima); depois tudo fica parado, só a respiração leve de sempre
+function nubeSetClima(w, clima, expr, brecha){
+  if (!w) return; clima = NUBE_CLIMAS[clima] ? clima : "";
+  if (expr) nubeSetExpr(w, expr);
+  w.dataset.clima=clima; w.style.setProperty("--nb", NUBE_PAL[w.dataset.pal].tone[clima]);
+  if (brecha) w.dataset.brecha="1"; else delete w.dataset.brecha;
+  nubePlay(w);
+}
+// toca a reação uma vez (rosto + clima); depois fica só o "vivo" de fundo: flutuar, respirar e piscar de vez em quando
 function nubePlay(w){
   if (!w) return; w.classList.remove("play","nplay"); void w.getBoundingClientRect(); w.classList.add("play","nplay","force");
-  clearTimeout(w.__t); w.__t=setTimeout(()=>w.classList.remove("play","nplay"), 4200);
+  clearTimeout(w.__t); w.__t=setTimeout(()=>w.classList.remove("play","nplay"), 4600);
+}
+// sequência de climas (ex.: a chuva vai embora e o sol volta)
+function nubeSequence(w, steps, gap){
+  clearTimeout(w.__seq); let i=0;
+  const next=()=>{ const s=steps[i++]; if (!s) return; nubeSetClima(w, s.clima, s.expr); w.__seq=setTimeout(next, gap||2600); };
+  next();
+}
+// ---------- coerência: contexto -> clima -> expressão ----------
+// Não é uma tabela rígida: cada expressão tem climas onde combina sempre ("rec"), climas onde só faz sentido
+// por causa de um acontecimento pontual ("ctx", com exemplo) e, raramente, onde fica contraditória ("odd").
+// Ordem dos climas: ensolarado, parcial, nublado, chuvoso, tempestade.
+const NUBE_FIT = {
+  "neutro":          {rec:[0,1,2,3,4]},
+  "pensando":        {rec:[0,1,2,3,4]},
+  "surpreso":        {rec:[0,1,2,3,4], why:"Serve pro bom e pro ruim: depende do que aconteceu."},
+  "curioso":         {rec:[0,1,2,3], ctx:[4], why:"Na tempestade, só se algo novo chamou a atenção (ex.: uma devolução)."},
+  "alerta":          {rec:[1,2,3,4], ctx:[0], why:"Em dia de sol, só pra um aviso pontual (ex.: conta vencendo amanhã)."},
+  "desconfiado":     {rec:[1,2,3], ctx:[0,4], why:"Fora disso, só olhando um gasto específico."},
+  "economizando":    {rec:[0,1,2,3], ctx:[4], why:"Na tempestade, só quando você guardou dinheiro mesmo assim."},
+  "com-fome":        {rec:[0,1,2], ctx:[3,4], why:"Com o mês apertado, só reagindo a um gasto com comida."},
+  "satisfeito":      {rec:[0,1], ctx:[2], odd:[3,4], why:"No nublado, só por uma coisa boa pontual."},
+  "animado":         {rec:[0,1], ctx:[2,3], odd:[4], why:"Com o mês ruim, só por um acontecimento bom (ex.: salário caiu)."},
+  "comemorando":     {rec:[0,1], ctx:[2,3,4], why:"Com o mês ruim, só comemorando uma conquista (meta, cofrinho), sem fingir que o mês melhorou."},
+  "alcançando-meta": {rec:[0,1,2], ctx:[3,4], why:"Uma meta batida vale comemorar mesmo com o mês apertado."},
+  "apaixonado":      {rec:[0,1], ctx:[2], odd:[3,4], why:"No nublado, só por um desejo realizado que coube no plano."},
+  "sonolento":       {rec:[0,1], ctx:[2], odd:[3,4], why:"Sonolento é dia calmo; com o mês apertado ele não estaria tranquilo."},
+  "preocupado":      {rec:[2,3,4], ctx:[0,1], why:"Em dia bom, só por um aviso pontual (ex.: limite chegando)."},
+  "triste":          {rec:[3,4], ctx:[1,2], odd:[0], why:"Fora da chuva, só por algo pontual (ex.: estourou um limite)."},
+  "estressado":      {rec:[3,4], ctx:[2], odd:[0,1], why:"Apertado combina com chuva ou tempestade."},
+  "chorando":        {rec:[4], ctx:[3], odd:[0,1,2], why:"Chorar é pra tempestade de verdade."}
+};
+function nubeFit(expr, clima){
+  if (!clima) return {nivel:"rec"}; const i=NUBE_ORDEM.indexOf(clima), f=NUBE_FIT[expr]||{rec:[0,1,2,3,4]};
+  const nivel = (f.rec||[]).includes(i) ? "rec" : (f.ctx||[]).includes(i) ? "ctx" : (f.odd||[]).includes(i) ? "odd" : "ctx";
+  return {nivel, why:f.why||""};
+}
+// acontecimentos: o clima do mês NÃO muda por causa de um acontecimento. A reação muda.
+// Coisa boa com o mês ruim: ele reage feliz e o sol aparece por uma brecha, mas a chuva continua.
+const NUBE_EVENTOS = {
+  nada:       {nome:"Dia comum", pos:false, ex:{0:["satisfeito","sonolento","neutro"],1:["neutro","curioso","pensando"],2:["desconfiado","pensando","alerta"],3:["preocupado","triste","pensando"],4:["estressado","alerta","preocupado"]},
+               fala:{bom:"Tudo calmo por aqui.", meio:"Tô de olho, mas nada grave.", ruim:"O mês tá pesado. Vamos com calma."}},
+  meta:       {nome:"Bateu uma meta", pos:true, ex:["alcançando-meta","comemorando"],
+               fala:{bom:"Meta batida! Que mês.", meio:"Meta batida! Mesmo com o mês pedindo atenção.", ruim:"Meta batida. O mês segue apertado, mas essa conquista é sua."}},
+  cofrinho:   {nome:"Guardou no Cofrinho", pos:true, ex:["economizando","satisfeito"],
+               fala:{bom:"Mais um pouco guardado.", meio:"Guardou mesmo com o mês corrido. Boa.", ruim:"Guardou mesmo com o mês apertado. Respeito."}},
+  salario:    {nome:"Caiu o salário", pos:true, ex:["animado","comemorando","alerta"],
+               fala:{bom:"Salário na conta!", meio:"Salário caiu. Agora é segurar o ritmo.", ruim:"Salário caiu. Bora usar com calma."}},
+  grandeOk:   {nome:"Compra grande, dentro do plano", pos:false, ex:["pensando","curioso","neutro"],
+               fala:{bom:"Compra grande, mas cabia no plano. Só anotei.", meio:"Compra grande, mas estava prevista. Anotado.", ruim:"Essa estava prevista. O aperto vem de outros gastos."}},
+  grandeFora: {nome:"Compra grande fora do plano", pos:false, ex:["surpreso","desconfiado","preocupado"],
+               fala:{bom:"Essa não estava no plano. Ainda cabe, mas fica o registro.", meio:"Essa não estava no plano. Vale ver de onde sai.", ruim:"Mais uma fora do plano. Hora de segurar."}},
+  limite80:   {nome:"Limite em 80%", pos:false, ex:["alerta","desconfiado","preocupado"],
+               fala:{bom:"Um limite chegou em 80%. O resto vai bem.", meio:"Um limite chegou em 80%.", ruim:"Mais um limite chegando no fim."}},
+  limite100:  {nome:"Estourou um limite", pos:false, ex:["preocupado","triste","estressado"],
+               fala:{bom:"Esse limite passou, mas o mês no geral está ok.", meio:"Esse limite passou.", ruim:"Esse limite também passou."}},
+  comida:     {nome:"Mais um gasto com comida", pos:false, ex:["com-fome","desconfiado","pensando"],
+               fala:{bom:"Comida fora de novo? Tô só observando.", meio:"Comida fora de novo. Tô contando.", ruim:"Comida fora com o mês assim? Só comentando."}},
+  desejo:     {nome:"Comprou um desejo", pos:true, ex:["apaixonado","satisfeito","pensando"],
+               fala:{bom:"Saiu da lista de desejos! Coube no plano.", meio:"Saiu da lista de desejos. Coube?", ruim:"Saiu da lista de desejos. Vale conferir se coube."}},
+  devolucao:  {nome:"Entrou uma devolução", pos:true, ex:["surpreso","satisfeito","curioso"],
+               fala:{bom:"Dinheiro voltando. Gosto assim.", meio:"Uma devolução! Ajuda.", ruim:"Uma devolução. Já alivia um pouco."}},
+  semGasto:   {nome:"Dia sem gastar", pos:true, ex:["sonolento","satisfeito","economizando"],
+               fala:{bom:"Dia sem gastos. Calmaria.", meio:"Dia sem gastos. Ajuda o mês.", ruim:"Um dia sem gastos já ajuda."}},
+  estourou:   {nome:"O mês passou do plano", pos:false, ex:["chorando","estressado","triste"],
+               fala:{bom:"Passou um pouco do plano.", meio:"O mês passou do plano.", ruim:"O mês passou do plano. Vamos reorganizar."}}
+};
+// escolhe a expressão: só entre as que combinam com o clima (prefere "rec"; aceita "ctx" porque há um acontecimento);
+// nunca uma "odd". A variedade vem de um número fixo por dia, então não fica pulando a cada toque.
+function nubePick(evento, clima, seed){
+  const E=NUBE_EVENTOS[evento]||NUBE_EVENTOS.nada; clima = NUBE_CLIMAS[clima] ? clima : "parcial"; const i=NUBE_ORDEM.indexOf(clima);
+  const lista = Array.isArray(E.ex) ? E.ex : E.ex[i];
+  const ok = lista.filter(x=>nubeFit(x,clima).nivel!=="odd"); const rec = ok.filter(x=>nubeFit(x,clima).nivel==="rec");
+  const pool = evento==="nada" ? (rec.length?rec:ok) : (ok.length?ok:["neutro"]);
+  const s = seed==null ? new Date().getDate() : seed; const expr = pool[Math.abs(s)%pool.length];
+  const tom = i<=1 ? "bom" : i===2 ? "meio" : "ruim";
+  return {clima, expr, fala:E.fala[tom], brecha: !!(E.pos && i>=2), fit:nubeFit(expr,clima)};
 }
 // ---------- qual clima mostrar (sugestão visual, nunca um diagnóstico) ----------
 // Usa só números que o app já calcula: plano do mês (budget), limites (limitStatus) e o ritmo do mês.
@@ -4939,38 +5168,92 @@ function nubeClima(T){
   if (ahead > 0.05){ why.push("Tudo certo, mas o ritmo de gastos está um pouco acima do mês."); return {clima:"parcial", why}; }
   why.push(cur ? "Gastos dentro do plano e no ritmo do mês." : "O mês fechou dentro do plano."); return {clima:"ensolarado", why};
 }
+// ---------- ícone do app (proposta; o ícone instalado NÃO muda) ----------
+// SVG 1024x1024, fundo opaco, sem texto. O iOS arredonda os cantos sozinho: o Nube fica dentro da área segura.
+const NUBE_ICON_COMP = {
+  A:{nome:"A · Nube expressivo", expr:"curioso"},
+  B:{nome:"B · Nube com sol", expr:"satisfeito"},
+  C:{nome:"C · Close no rosto", expr:"desconfiado"}
+};
+function nubeIcon(pal, comp){
+  const P=NUBE_PAL[pal]||NUBE_PAL.azul, C=NUBE_ICON_COMP[comp]||NUBE_ICON_COMP.A, tone=P.tone[""];
+  const body = NUBE_BODY.replace('class="nshadow"',`fill="${P.dark}" opacity=".1"`).replace('class="mb nb"',`fill="${tone}"`).replace('class="nhl"','stroke="#FFFFFF" opacity=".16"');
+  // no ícone, sem os detalhes soltos (?, !, zz...): viram sujeira em 60px
+  const keep={...nAcc}; for (const k in nAcc) if (k!=="tears") nAcc[k]="";
+  let face; try { face = nubeFace(C.expr, pal).replace(/ class="[^"]*"/g,""); } finally { Object.assign(nAcc, keep); }
+  const nube = (t)=>`<g transform="${t}">${body}${face}</g>`;
+  let art;
+  if (comp==="B"){
+    const rays=[0,45,90,135,180,225,270,315].map(a=>`<path d="M 0 -150 V -205" transform="rotate(${a})" stroke="#F6C343" stroke-width="26" stroke-linecap="round"/>`).join("");
+    art = `<g transform="translate(730 300)">${rays}<circle r="112" fill="#F6C343"/></g>` + nube("translate(66 150) scale(3.15)");
+  } else if (comp==="C") art = nube("translate(-206 -248) scale(5.4)");
+  else art = nube("translate(33 30) scale(3.6)");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><rect width="1024" height="1024" fill="${P.bg}"/>${art}</svg>`;
+}
+const nubeIconImg = (pal, comp, size) => el("img",{class:"nicon", alt:`Ícone ${NUBE_ICON_COMP[comp].nome}, ${NUBE_PAL[pal].nome}`, width:size, height:size, src:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(nubeIcon(pal,comp))});
 // ---------- área de teste (Ajustes) ----------
 function openNubeTest(){
-  const st={pal:"azul", expr:"desconfiado", clima:"", view:"lado"};
+  const st={pal:"azul", expr:"satisfeito", clima:"ensolarado", view:"so", evento:"", brecha:false};
   const prefs=mascotPrefs();
-  const stage=el("div",{class:"nstage"}); const small=el("div",{class:"nsmall"}); const lbl=el("p",{class:"sm muted",style:"margin:0;text-align:center"});
-  const mk=(cur)=>{ const g=el("div",{class:"ngrp"}); return g; };
-  function draw(){
-    const P=NUBE_PAL[st.pal]; stage.style.background=P.bg; small.style.background=P.bg;
-    const nube=nubeEl(st.expr,{pal:st.pal, clima:st.clima, size:180}); const old=mascotEl(st.expr,140); old.classList.add("force");
-    rc(stage, ...(st.view==="lado" ? [el("div",{class:"ncol"},old,el("small",null,"Atual")), el("div",{class:"ncol"},nube,el("small",null,"Nube"))] : [el("div",{class:"ncol"},nube)]));
-    rc(small, el("div",{class:"ncol"},nubeEl(st.expr,{pal:st.pal,clima:st.clima,size:32}),el("small",null,"32")), el("div",{class:"ncol"},nubeEl(st.expr,{pal:st.pal,clima:st.clima,size:48}),el("small",null,"48")),
-      el("div",{class:"ncol"},nubeEl(st.expr,{pal:st.pal,clima:st.clima,size:64}),el("small",null,"64 (Início)")),
-      el("div",{class:"nbub",style:`background:${P.light}`}, nubeEl(st.expr,{pal:st.pal,clima:st.clima,size:44}), el("span",null, st.clima?NUBE_CLIMAS[st.clima].txt:"Bom dia! Já viu seus gastos de hoje?")));
-    lbl.textContent = `${MASCOT_LBL[st.expr]||st.expr}${st.clima?" · "+NUBE_CLIMAS[st.clima].nome:""} · ${P.nome}`;
-    setTimeout(()=>{ for (const w of panel.querySelectorAll(".msc")) { if (w.classList.contains("nube")) nubePlay(w); else { w.classList.remove("play"); void w.getBoundingClientRect(); w.classList.add("play"); } } }, 60);
-    for (const b of panel.querySelectorAll("[data-k]")) b.classList.toggle("on", st[b.dataset.k]===b.dataset.v);
+  const stage=el("div",{class:"nstage"}), small=el("div",{class:"nsmall"}), lbl=el("p",{class:"sm muted",style:"margin:0;text-align:center"});
+  const fit=el("div",{class:"nfit",id:"nubeFit"}), bubble=el("div",{class:"nbub nbig"}), icons=el("div",{class:"nicons"}), home=el("div",{class:"nhome"});
+  let big=null;
+  const fitTxt = f => f.nivel==="rec" ? "Combina" : f.nivel==="ctx" ? "Só com um acontecimento" : "Fica incoerente";
+  function marks(){
+    for (const b of panel.querySelectorAll("[data-k]")) b.classList.toggle("on", String(st[b.dataset.k])===b.dataset.v);
+    for (const b of panel.querySelectorAll("[data-k=expr]")){ const n=nubeFit(b.dataset.v, st.clima).nivel; b.dataset.fit=n; b.title=fitTxt({nivel:n}); }
+    const f=nubeFit(st.expr, st.clima); fit.dataset.fit=f.nivel;
+    rc(fit, el("b",null, f.nivel==="rec"?"✓ ":f.nivel==="ctx"?"~ ":"✕ ", fitTxt(f)), f.nivel==="rec" ? (st.clima?" com "+NUBE_CLIMAS[st.clima].nome.toLowerCase()+".":".") : " · "+f.why);
+    const P=NUBE_PAL[st.pal]; lbl.textContent = `${MASCOT_LBL[st.expr]||st.expr}${st.clima?" · "+NUBE_CLIMAS[st.clima].nome:""} · ${P.nome}`;
   }
-  const chip=(k,v,t)=>el("button",{class:"chip","data-k":k,"data-v":v,onclick:()=>{ if (k==="clima"){ st.clima = st.clima===v ? "" : v; if (st.clima) st.expr=NUBE_CLIMAS[v].expr; } else st[k]=v; draw(); }},t);
+  // redesenha tudo (troca de paleta ou de modo); troca de clima/expressão só anima o que já está na tela
+  function draw(){
+    const P=NUBE_PAL[st.pal]; stage.style.background=P.bg; small.style.background=P.bg; bubble.style.background=P.bubble;
+    big=nubeEl(st.expr,{pal:st.pal, clima:st.clima, size:200, brecha:st.brecha}); const old=mascotEl(st.expr,130); old.classList.add("force");
+    rc(stage, ...(st.view==="lado" ? [el("div",{class:"ncol"},old,el("small",null,"Atual")), el("div",{class:"ncol"},big,el("small",null,"Nube"))] : [el("div",{class:"ncol"},big)]));
+    drawSmall(); drawIcons(); marks(); setTimeout(()=>nubePlay(big), 60);
+  }
+  function drawSmall(){
+    const P=NUBE_PAL[st.pal], o={pal:st.pal,clima:st.clima,brecha:st.brecha};
+    rc(small, ...[32,48,64].map(s=>el("div",{class:"ncol"},nubeEl(st.expr,{...o,size:s}),el("small",null,s===64?"64 (Início)":String(s)))));
+    const ev=st.evento && NUBE_EVENTOS[st.evento];
+    rc(bubble, nubeEl(st.expr,{...o,size:46}), el("span",null, ev ? st.fala : (st.clima?NUBE_CLIMAS[st.clima].txt:"Bom dia! Já viu seus gastos de hoje?")));
+  }
+  function update(anim){ if (!big) return draw(); nubeSetClima(big, st.clima, st.expr, st.brecha); if (st.view==="lado"){ const old=stage.querySelector(".msc:not(.nube)"); if (old && old.dataset.e!==st.expr){ old.replaceWith(Object.assign(mascotEl(st.expr,130),{})); } } drawSmall(); marks(); }
+  function drawIcons(){
+    rc(icons, ...Object.keys(NUBE_ICON_COMP).map(c=>el("div",{class:"ncol"}, nubeIconImg(st.pal,c,76), el("small",null,NUBE_ICON_COMP[c].nome))));
+    rc(home, ...Object.keys(NUBE_PAL).flatMap(p=>Object.keys(NUBE_ICON_COMP).map(c=>el("div",{class:"napp"+(p===st.pal?" sel":"")}, nubeIconImg(p,c,60), el("span",null,c+" · "+NUBE_PAL[p].nome.replace("Cereja · ","Cer. ").replace("Azul · ","Azul ").replace("cinza claro","cinza"))))));
+  }
+  const chip=(k,v,t)=>el("button",{class:"chip","data-k":k,"data-v":v,onclick:()=>{
+    if (k==="clima"){ st.clima = st.clima===v ? "" : v; st.evento=""; st.brecha=false; if (st.clima && nubeFit(st.expr,st.clima).nivel!=="rec") st.expr=NUBE_CLIMAS[v].expr; return update(); }
+    if (k==="expr"){ st.expr=v; st.evento=""; st.brecha=false; return update(); }
+    if (k==="evento"){ st.evento=v; const r=nubePick(v, st.clima||"parcial", new Date().getDate()); st.clima=r.clima; st.expr=r.expr; st.brecha=r.brecha; st.fala=r.fala; return update(); }
+    st[k]=v; draw(); }},t);
   const now=(()=>{ try { return nubeClima(state.cur||thisMonth()); } catch(e){ return null; } })();
+  const seq=(t,steps)=>el("button",{class:"btn small ghost",onclick:()=>{ if(!big) return; st.evento=""; st.brecha=false; nubeSequence(big, steps, 2600); const last=steps[steps.length-1]; st.clima=last.clima; st.expr=last.expr; setTimeout(()=>{ drawSmall(); marks(); }, 2600*(steps.length-1)+50); }},t);
   const panel=el("div",{class:"panel nubetest",role:"dialog","aria-label":"Testar o Nube"},
     el("div",{class:"hd"},el("h2",null,"Nube (prévia)"),el("button",{class:"close","aria-label":"Fechar",onclick:()=>sh.remove()},"✕")),
-    el("p",{class:"sm muted",style:"margin:0"},"Só um teste: nada muda no app nem nos seus dados. O mascote atual continua em todas as telas."),
-    el("div",{class:"chips"}, chip("view","lado","Atual x Nube"), chip("view","so","Só o Nube")),
-    el("div",{class:"chips"}, chip("pal","azul","Azul + Baunilha"), chip("pal","cereja","Manteiga + Cereja"), chip("pal","misto","Azul + Manteiga com cereja")),
-    stage, lbl,
-    el("div",{class:"actions",style:"justify-content:center"}, el("button",{class:"btn small",id:"nubeReplay",onclick:draw},"Repetir animação")),
-    el("h3",{class:"nh3"},"Clima financeiro"),
-    el("div",{class:"chips"}, ...Object.entries(NUBE_CLIMAS).map(([k,c])=>chip("clima",k,c.nome))),
-    now ? el("div",{class:"warn",id:"nubeNow"}, el("b",null,`Com seus dados de ${mLabel(state.cur||thisMonth())}: ${NUBE_CLIMAS[now.clima].nome}. `), now.why.join(" "), " ", el("button",{class:"chip",onclick:()=>{ st.clima=now.clima; st.expr=NUBE_CLIMAS[now.clima].expr; draw(); }},"Ver")) : null,
-    el("h3",{class:"nh3"},"Expressões (as 18 do mascote atual)"),
+    el("p",{class:"sm muted",style:"margin:0"},"Só um teste: nada muda no app nem nos seus dados. O mascote e o ícone atuais continuam."),
+    el("div",{class:"chips"}, ...Object.entries(NUBE_PAL).map(([k,p])=>chip("pal",k,p.nome))),
+    el("div",{class:"chips"}, chip("view","so","Só o Nube"), chip("view","lado","Comparar com o atual")),
+    stage, lbl, fit,
+    el("div",{class:"actions",style:"justify-content:center;flex-wrap:wrap"}, el("button",{class:"btn small",id:"nubeReplay",onclick:()=>nubePlay(big)},"Repetir animação"),
+      seq("Chuva passando → sol",[{clima:"chuvoso",expr:"preocupado"},{clima:"nublado",expr:"pensando"},{clima:"parcial",expr:"curioso"},{clima:"ensolarado",expr:"satisfeito"}]),
+      seq("Sol → tempestade",[{clima:"ensolarado",expr:"neutro"},{clima:"nublado",expr:"desconfiado"},{clima:"chuvoso",expr:"preocupado"},{clima:"tempestade",expr:"estressado"}])),
+    el("h3",{class:"nh3"},"Clima do mês"),
+    el("div",{class:"chips"}, ...NUBE_ORDEM.map(k=>chip("clima",k,NUBE_CLIMAS[k].nome))),
+    now ? el("div",{class:"warn",id:"nubeNow"}, el("b",null,`Com seus dados de ${mLabel(state.cur||thisMonth())}: ${NUBE_CLIMAS[now.clima].nome}. `), now.why.join(" "), " ", el("button",{class:"chip",onclick:()=>{ st.clima=now.clima; st.evento=""; st.brecha=false; st.expr=nubePick("nada",now.clima).expr; update(); }},"Ver")) : null,
+    el("h3",{class:"nh3"},"Acontecimentos (o Nube escolhe a reação sozinho)"),
+    el("p",{class:"sm muted",style:"margin:0"},"O clima do mês não muda por causa de um acontecimento. Coisa boa num mês ruim: ele comemora e o sol aparece por uma brecha, mas a chuva continua."),
+    el("div",{class:"chips"}, ...Object.entries(NUBE_EVENTOS).filter(([k])=>k!=="nada").map(([k,e])=>chip("evento",k,e.nome))),
+    bubble,
+    el("h3",{class:"nh3"},"Expressões (as 18)"),
+    el("p",{class:"sm muted",style:"margin:0"},"Pode testar qualquer uma. As riscadas ficam incoerentes com o clima escolhido; as com ~ só fazem sentido com um acontecimento."),
     el("div",{class:"chips nexprs"}, ...Object.keys(MASCOT_LBL).map(k=>chip("expr",k,MASCOT_LBL[k]))),
     el("h3",{class:"nh3"},"Tamanho pequeno e uso no app"), small,
+    el("h3",{class:"nh3"},"Ícone do app (proposta)"),
+    el("p",{class:"sm muted",style:"margin:0"},"O ícone instalado não muda. Abaixo, as 3 composições na paleta escolhida e todas juntas numa tela inicial de iPhone, no tamanho real."),
+    icons, home,
     prefs.anim ? null : el("p",{class:"sm muted"},"As reações animadas estão desligadas em Ajustes, mas aqui a prévia anima pra você ver.")
   );
   const sh=el("div",{class:"sheet",onclick:e=>{ if(e.target===sh) sh.remove(); }}, panel);
@@ -5014,7 +5297,7 @@ state.demo = false; state.view="inicio"; render();
 })();
 
 // exposto para teste
-window.__sobrou = {NUBE_PAL, NUBE_CLIMAS, nubeEl, nubeSetClima, nubePlay, nubeClima, openNubeTest, MASCOT_LBL, CATS, geral, computeAmb, isPending, catSelect, limitStatus, limitsList, preMigReemb, devOf, inheritParc, limSpend, previstoList, renderPrevisto, fixedList, detectFixed, fixKey, summarize, normMonths, parseChat, chatSave, openChat, sharedParc, parcLine, parcSuggest, budget, openSharedNew, renderCompart, thisMonth, monthsAhead, makePushCode, ghSecretsUrl, renderLembrete, saveConfig, saveShared, backupData, localISO, categorize, icoSVG, saveGoals, saveSavings, saveBalances, openIfoodSaldo, openMascotTest, playMascot, seenGet, helloData, helloCandidates, mascotWatch, WATCH, showReaction, txEvent, importEvent, catShare, ifoodSaldo, limitStatus, oiHist, state, render, parseLines, parseCSV, parseOFX, categorize, keyOf, summarize, budget, detectFixed, findDups, missingCards, lsLoad, normMonths, savedToCofre, computeAmb, isPending, recat, go,
+window.__sobrou = {NUBE_PAL, NUBE_CLIMAS, NUBE_FIT, NUBE_EVENTOS, NUBE_ORDEM, NUBE_ICON_COMP, nubeFit, nubePick, nubeIcon, nubeSequence, nubeSetExpr, nubeEl, nubeSetClima, nubePlay, nubeClima, openNubeTest, MASCOT_LBL, CATS, geral, computeAmb, isPending, catSelect, limitStatus, limitsList, preMigReemb, devOf, inheritParc, limSpend, previstoList, renderPrevisto, fixedList, detectFixed, fixKey, summarize, normMonths, parseChat, chatSave, openChat, sharedParc, parcLine, parcSuggest, budget, openSharedNew, renderCompart, thisMonth, monthsAhead, makePushCode, ghSecretsUrl, renderLembrete, saveConfig, saveShared, backupData, localISO, categorize, icoSVG, saveGoals, saveSavings, saveBalances, openIfoodSaldo, openMascotTest, playMascot, seenGet, helloData, helloCandidates, mascotWatch, WATCH, showReaction, txEvent, importEvent, catShare, ifoodSaldo, limitStatus, oiHist, state, render, parseLines, parseCSV, parseOFX, categorize, keyOf, summarize, budget, detectFixed, findDups, missingCards, lsLoad, normMonths, savedToCofre, computeAmb, isPending, recat, go,
   nameOf, knownName, eff, needsReview, reviewList, takeSnap, restoreSnap, importsList, undoImport, pendingOf, paidOf, openTx, openSplit, openPayment, ICON_PACK, normShared, cofreTotal, allocTotal, cofreLivre, metaInfo, parcelList, upcoming, fixedList, fixedSuggestions, backupData, parseBackup, doRestore, exportBackup, goalsList,
   placeOf, spendOf, groupBy, anaTx, anaPeriod, compareMonths, limitStatus, limitNotes, limitsList, normLimits, normAnalise, insights, refundsOf, openLimit, backupCounts,
   SVG_ICONS, MASCOT, BANKS, bankOf, mascotEl, reactionFor, askSobrou, SobrouDados, decorate, unusualTx, normMascote,
