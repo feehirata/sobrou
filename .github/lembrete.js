@@ -9,13 +9,13 @@ const owner = process.env.GITHUB_REPOSITORY_OWNER || 'sobrou';
 webpush.setVapidDetails(`https://${owner.toLowerCase()}.github.io/`, c.pub, c.priv);
 const MSGS = [
   'Já lançou os gastos de hoje? Leva 10 segundos.',
-  'Passa no Sobrou: o que você gastou hoje?',
+  'Passa no Tino: o que você gastou hoje?',
   'Hora de anotar o dia. Escreve tipo "32 mercado nubank".',
-  'Um minutinho pro Sobrou? Lança o que saiu hoje.',
+  'Um minutinho pro Tino? Lança o que saiu hoje.',
   'Bora fechar o dia: tem gasto pra lançar?',
 ];
 const day = Math.floor(Date.now() / 864e5);
-const payload = JSON.stringify({ title: 'Sobrou', body: MSGS[day % MSGS.length], tag: 'sobrou-lembrete' });
+const payload = JSON.stringify({ title: 'Tino', body: MSGS[day % MSGS.length], tag: 'sobrou-lembrete' });
 webpush.sendNotification(c.sub, payload, { TTL: 6 * 3600, urgency: 'normal' })
   .then(r => console.log('Lembrete enviado:', r.statusCode))
   .catch(e => {

@@ -1,7 +1,7 @@
-// Sobrou: arquivos do app pra abrir sem internet. Versão: v42 (b8a2bc49)
+// Sobrou: arquivos do app pra abrir sem internet. Versão: v43 (913527ab)
 // Regra: a página (index.html) vem SEMPRE da internet primeiro; o cache só é usado sem conexão.
 // Assim uma versão nova chega na próxima vez que você abrir o app com internet.
-const CACHE = "sobrou-v42-b8a2bc49";
+const CACHE = "sobrou-v43-913527ab";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("sobrou-") && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -26,7 +26,7 @@ self.addEventListener("fetch", e => {
 // Lembrete diário: chega pelo GitHub (Actions) e aparece como notificação.
 self.addEventListener("push", e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data && e.data.text() }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Sobrou", { body: d.body || "Já lançou os gastos de hoje?", icon: "./icons/icon-192.png", badge: "./icons/icon-192.png", tag: d.tag || "sobrou-lembrete" }));
+  e.waitUntil(self.registration.showNotification(d.title || "Tino", { body: d.body || "Já lançou os gastos de hoje?", icon: "./icons/icon-192.png", badge: "./icons/icon-192.png", tag: d.tag || "sobrou-lembrete" }));
 });
 self.addEventListener("notificationclick", e => {
   e.notification.close();

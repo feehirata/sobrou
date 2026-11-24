@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="sobrou-versao" content="v42">
+<meta name="sobrou-versao" content="v43">
 <meta name="description" content="Controle de gastos que lê o extrato e mostra quanto sobrou.">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
@@ -11,13 +11,13 @@
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Sobrou">
+<meta name="apple-mobile-web-app-title" content="Tino">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
-<title>Sobrou</title>
+<title>Tino</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap">
 <style>
@@ -761,7 +761,7 @@ textarea{font:inherit}
 
 <div class="wrap" id="app">
   <header class="top" id="topbar">
-    <div class="brand">sobr<span>ou</span></div>
+    <div class="brand">ti<span>no</span></div>
     <div class="monthnav" id="monthnav"><button id="prev" aria-label="Mês anterior">‹</button><button id="mlabel" class="mlabel num" aria-label="Escolher mês">—</button><button id="next" aria-label="Próximo mês">›</button></div>
   </header>
   <div class="subhd" id="subhd" hidden><button class="back" id="backBtn" aria-label="Voltar"><svg class="ic" aria-hidden="true" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"><path d="M38 14 20 32l18 18"/></svg></button><h1 id="subTitle"></h1></div>
@@ -930,7 +930,7 @@ textarea{font:inherit}
     <article class="card" id="wishSum">
       <div class="top"><h2>Desejos</h2><button class="btn small" id="wishAdd">Novo desejo</button></div>
       <div class="kv" id="wishKV"></div>
-      <div class="cardfoot"><button class="link" id="wishAsk">Perguntar ao Sobrou</button></div>
+      <div class="cardfoot"><button class="link" id="wishAsk">Perguntar ao Tino</button></div>
     </article>
     <div class="wtools" id="wishTools" hidden>
       <input id="wishQ" type="search" placeholder="Buscar desejo" aria-label="Buscar desejo" autocomplete="off">
@@ -950,7 +950,7 @@ textarea{font:inherit}
       </div>
       <div class="kv" id="anaKV"></div>
       <div id="anaCmpBox"></div>
-      <div class="cardfoot"><button class="link" id="anaAsk">Perguntar ao Sobrou</button></div>
+      <div class="cardfoot"><button class="link" id="anaAsk">Perguntar ao Tino</button></div>
     </article>
     <div class="say-box" id="anaSay" hidden></div>
     <article class="card" id="anaIns">
@@ -2029,7 +2029,7 @@ function backupCounts(d){
 const daysSince = iso => iso ? Math.floor((Date.now()-new Date(iso).getTime())/864e5) : null;
 async function exportBackup(){
   if (state.store!=="db" && state.store!=="local"){ canWrite(); return false; }
-  const json=JSON.stringify(backupData()); const name=`sobrou-backup-${localISO()}.json`;
+  const json=JSON.stringify(backupData()); const name=`tino-backup-${localISO()}.json`;
   let ok=false;
   let dl=null; try{ dl = window.claude&&window.claude.use ? await window.claude.use("downloads") : null; }catch(e){ dl=null; }
   if (dl){
@@ -2044,8 +2044,8 @@ async function exportBackup(){
   return true;
 }
 function parseBackup(text){
-  let d; try{ d=JSON.parse(text); }catch(e){ return {err:"Esse arquivo não é um backup do Sobrou."}; }
-  if (!d || typeof d!=="object" || !d.months || typeof d.months!=="object" || (d.app && d.app!=="sobrou")) return {err:"Esse arquivo não é um backup do Sobrou."};
+  let d; try{ d=JSON.parse(text); }catch(e){ return {err:"Esse arquivo não é um backup do Tino (nem do Sobrou)."}; }
+  if (!d || typeof d!=="object" || !d.months || typeof d.months!=="object" || (d.app && d.app!=="sobrou")) return {err:"Esse arquivo não é um backup do Tino (nem do Sobrou)."};
   const b={ months:normMonths(d.months), config:d.config&&typeof d.config==="object"?d.config:{}, balances:normBalances(d.balances), savings:normSavings(d.savings), goals:normGoals(d.goals), fixed:normFixed(d.fixed), shared:normShared(d.shared), wishes:("wishes" in d)?normWishes(d.wishes):null, wishPics:("wishPics" in d)?normPics(d.wishPics):null, salvoEm:d.salvoEm||null };
   return {b};
 }
@@ -3402,7 +3402,7 @@ function mascotEl(expr, size, clima){ return NUBE_ON ? nubeEl(MASCOT[expr] ? exp
 function mascotOld(expr, size){
   expr = MASCOT[expr] ? expr : "neutro";
   const w=el("span",{class:"msc","data-e":expr,"data-a":MASCOT_ANIM[expr]||"idle",style:size?`width:${size}px;height:${size}px`:null});
-  w.innerHTML=`<svg viewBox="0 0 256 256" role="img" aria-label="Sobrou ${MASCOT_LBL[expr]||expr}" focusable="false"><g class="all">${MASCOT_BODY}${MASCOT[expr]}</g></svg>`;
+  w.innerHTML=`<svg viewBox="0 0 256 256" role="img" aria-label="Nube ${MASCOT_LBL[expr]||expr}" focusable="false"><g class="all">${MASCOT_BODY}${MASCOT[expr]}</g></svg>`;
   return w;
 }
 // só anima uma vez por acontecimento (chave), quando aparece na tela; nunca a cada atualização
@@ -3541,10 +3541,10 @@ function askSobrou(q, k){
 }
 const ASK_SAMPLES = ["Quanto gastei com Uber este mês?","Onde estou gastando mais?","Quanto falta para minha meta?","Estou gastando mais do que no mês passado?"];
 function openAsk(){
-  sheet("Perguntar ao Sobrou",(panel,close)=>{
+  sheet("Perguntar ao Tino",(panel,close)=>{
     const out=el("div",{class:"askout"}), inp=el("input",{id:"askIn",type:"text",placeholder:"Escreva sua pergunta",autocomplete:"off"});
     const run=q=>{ inp.value=q; const a=askSobrou(q, state.cur); const m=mascotEl(a.expr,56); rc(out, m, el("p",{class:"say",id:"askAns"},a.text)); playMascot(m, null); };
-    rc(panel, head("Perguntar ao Sobrou",close),
+    rc(panel, head("Perguntar ao Tino",close),
       el("p",{class:"muted sm",style:"margin:0"},"Respostas calculadas aqui, com os seus dados. Nada sai do app."),
       el("form",{class:"askf",onsubmit:e=>{ e.preventDefault(); if (inp.value.trim()) run(inp.value); }}, inp, el("button",{class:"btn small",type:"submit"},"Perguntar")),
       el("div",{class:"chips"}, ((state.wishes.items||[]).some(w=>w.status==="ativo")?ASK_SAMPLES.concat(ASK_WISH):ASK_SAMPLES).map(q=>el("button",{class:"chip",type:"button",onclick:()=>run(q)},q))), out);
@@ -4854,19 +4854,19 @@ async function renderLembrete(){
   const box=$("#lembBody"); if (!box) return;
   const saved=lsGet(LEMB_KEY); const reg=await pushReg();
   const perm = "Notification" in window ? Notification.permission : "default";
-  if (!reg) { rc(box, el("p",{class:"sm",id:"lembNoApp",style:"margin:0"},"Pra ligar, abra o Sobrou pelo ícone na tela de início do iPhone (o app instalado). Aqui dentro do Claude não dá pra receber notificação.")); return; }
+  if (!reg) { rc(box, el("p",{class:"sm",id:"lembNoApp",style:"margin:0"},"Pra ligar, abra o Tino pelo ícone na tela de início do iPhone (o app instalado). Aqui dentro do Claude não dá pra receber notificação.")); return; }
   const status=el("p",{class:"sm",id:"lembStatus",style:"margin:0"});
   const ligar=el("button",{class:"btn",id:"lembOn"}, saved?"Gerar código de novo":"Ligar lembrete");
   ligar.addEventListener("click",async()=>{ ligar.disabled=true; status.textContent="Ligando…";
     try { await lembreteLigar(); renderLembrete(); }
-    catch(e){ status.textContent = String(e&&e.message)==="sem-permissao" ? "O iPhone não deixou. Vá em Ajustes › Notificações › Sobrou e permita, depois tente de novo." : "Não deu certo agora. Tente de novo com internet."; ligar.disabled=false; } });
-  const blocked = perm==="denied" ? "As notificações estão bloqueadas. Libere em Ajustes › Notificações › Sobrou." : "";
+    catch(e){ status.textContent = String(e&&e.message)==="sem-permissao" ? "O iPhone não deixou. Vá em Ajustes › Notificações › Tino e permita, depois tente de novo." : "Não deu certo agora. Tente de novo com internet."; ligar.disabled=false; } });
+  const blocked = perm==="denied" ? "As notificações estão bloqueadas. Libere em Ajustes › Notificações › Tino." : "";
   if (!saved) { status.textContent = blocked; rc(box, status, ligar); return; }
   const ta=el("textarea",{id:"lembCode",readonly:true,rows:3,class:"lembcode"}, saved.code); ta.value=saved.code;
   const copiar=el("button",{class:"btn small",id:"lembCopy"},"Copiar código");
   copiar.addEventListener("click",async()=>{ try { await navigator.clipboard.writeText(saved.code); toast("Código copiado."); } catch(e){ ta.focus(); ta.select(); toast("Selecionei o código: toque em Copiar."); } });
   const teste=el("button",{class:"btn small ghost",id:"lembTest"},"Testar aqui");
-  teste.addEventListener("click",async()=>{ try { const r=await pushReg(); await r.showNotification("Sobrou",{body:"Assim vai chegar o lembrete das 20h.",icon:"./icons/icon-192.png",tag:"sobrou-teste"}); } catch(e){ toast("Não consegui mostrar agora."); } });
+  teste.addEventListener("click",async()=>{ try { const r=await pushReg(); await r.showNotification("Tino",{body:"Assim vai chegar o lembrete das 20h.",icon:"./icons/icon-192.png",tag:"sobrou-teste"}); } catch(e){ toast("Não consegui mostrar agora."); } });
   const off=el("button",{class:"link",id:"lembOff",type:"button"},"Desligar lembrete");
   off.addEventListener("click",async()=>{ await lembreteDesligar(); toast("Lembrete desligado neste celular."); renderLembrete(); });
   rc(box,
