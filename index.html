@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="sobrou-versao" content="v40">
+<meta name="sobrou-versao" content="v41">
 <meta name="description" content="Controle de gastos que lê o extrato e mostra quanto sobrou.">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
-<meta name="theme-color" content="#F2F2F2">
+<meta name="theme-color" content="#F3F5FA">
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -23,8 +23,9 @@
 <style>
 /* Layout: one phone-width column. Hero answers "quanto sobrou", then where the money went, then the list. */
 :root{
-  --bg:#F2F2F2; --surface:#FFFFFF; --ink:#111111; --muted:#666666; --line:#DDDDDD;
-  --save:#111111; --save-soft:#FFFFFF; --spend:#7A7A7A; --spend-soft:#E4E4E4; --chip:#EBEBEB;
+  --bg:#F3F5FA; --surface:#FFFFFF; --ink:#1A2452; --muted:#5E6582; --line:#DDE2EE;
+  --save:#3658BD; --save-soft:#FFFFFF; --spend:#8C93AB; --spend-soft:#E3E7F1; --chip:#E9EDF6;
+  --brand:#3658BD; --brand-ink:#FFFFFF;
   --display:"Bricolage Grotesque",ui-rounded,"Segoe UI",system-ui,sans-serif;
   --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -737,6 +738,20 @@ textarea{font:inherit}
 @keyframes mBob{0%,100%{transform:translateY(0) scale(1,1)}20%{transform:scale(1.06,.94)}50%{transform:translateY(-22px) scale(.97,1.04)}80%{transform:translateY(0) scale(1.03,.97)}}
 @media (prefers-reduced-motion:reduce){.hello.hero .hring-arc{transition:none}}
 
+/* ===== Identidade Nube (v41): o azul do Nube nos destaques ===== */
+.btn{background:var(--brand);color:var(--brand-ink)}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+.toggle.on,.chip.on,.chip[aria-pressed=true],.mgrid button.on,.bigopt.primary,.ico.on .circ,.sign.in,.bub.me,.prio.p-muito,.hello.hero .hchip{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.ico.on .circ,.chip.on,.bigopt.primary .circ{--ibg:var(--brand)}
+.bnav .fab .c{background:var(--brand);color:var(--brand-ink);box-shadow:0 4px 14px rgba(54,88,189,.35)}
+.bnav button[aria-current="page"]{color:var(--brand)}
+.pbar i,.cbar .bar i,.lbar.warn .pbar i{background:var(--brand)}
+.lbar.over .pbar i{background:repeating-linear-gradient(45deg,var(--ink) 0 6px,#4A5378 6px 12px)}
+.link{color:var(--brand)}
+.wtxrow input{accent-color:var(--brand)}
+.hello.hero .hring-arc{stroke:var(--brand)}
+.hello.hero .msc.nube ~ .hshadow,.hello.hero .hshadow{display:none}
+.nubetest .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 </style>
 
 <div class="wrap" id="app">
@@ -1023,7 +1038,7 @@ textarea{font:inherit}
       <div class="mrow"><span><b>Reações animadas</b><br><span class="s">Desligado, ele fica paradinho. O resto continua igual.</span></span><button class="toggle" id="mscAnim" role="switch" aria-checked="true" aria-label="Reações animadas"><i></i></button></div>
       <p class="muted sm" id="mscNote" style="margin:0"></p>
       <button class="link" id="mscTest" type="button" style="align-self:flex-start">Testar mascote ›</button>
-      <button class="link" id="nubeTest" type="button" style="align-self:flex-start">Testar o Nube (prévia) ›</button>
+      <button class="link" id="nubeTest" type="button" style="align-self:flex-start">Climas e animações do Nube ›</button>
     </article>
     <article class="card" id="kwCard">
       <h2>Palavras que viram categoria</h2>
@@ -3377,7 +3392,9 @@ const MASCOT_ANIM = {"neutro":"idle","curioso":"look","satisfeito":"happy","come
   "com-fome":"hungry","economizando":"sparkle","sonolento":"sleepy"};
 const mascotPrefs = () => { const m=state.config.mascote||{}; return {show:m.show!==false, anim:m.anim!==false}; };
 const reducedMotion = () => { try{ return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
-function mascotEl(expr, size){
+const NUBE_ON = true, NUBE_APP_PAL = "azul";
+function mascotEl(expr, size, clima){ return NUBE_ON ? nubeEl(MASCOT[expr] ? expr : "neutro", {pal:NUBE_APP_PAL, size, clima:clima||""}) : mascotOld(expr, size); }
+function mascotOld(expr, size){
   expr = MASCOT[expr] ? expr : "neutro";
   const w=el("span",{class:"msc","data-e":expr,"data-a":MASCOT_ANIM[expr]||"idle",style:size?`width:${size}px;height:${size}px`:null});
   w.innerHTML=`<svg viewBox="0 0 256 256" role="img" aria-label="Sobrou ${MASCOT_LBL[expr]||expr}" focusable="false"><g class="all">${MASCOT_BODY}${MASCOT[expr]}</g></svg>`;
@@ -4201,7 +4218,7 @@ function heroNums(k){
 }
 function heroRing(used){
   const R=100, C=2*Math.PI*R, on=Math.max(0,Math.min(1,used||0))*C;
-  return `<svg class="hring-svg" viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--chip)" stroke-width="14"/><circle class="hring-arc" cx="110" cy="110" r="${R}" fill="none" stroke="var(--ink)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${on.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 110 110)"/></svg>`;
+  return `<svg class="hring-svg" viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="${R}" fill="none" stroke="var(--chip)" stroke-width="14"/><circle class="hring-arc" cx="110" cy="110" r="${R}" fill="none" stroke="var(--brand)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${on.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 110 110)"/></svg>`;
 }
 function heroLife(m){
   if (!m || m.__life) return; m.__life=true;
@@ -4223,7 +4240,9 @@ function renderHello(k){
   const lbl = N.none ? "Quanto dá pra gastar" : N.B.left<0 ? (N.cur?"Passou do plano do mês":"Passou do plano") : N.cur ? "Pode gastar no mês" : "Sobrou do plano";
   const big = N.none ? "—" : null;
   const ring=el("div",{class:"hring"}); ring.innerHTML=heroRing(N.none?0:N.used);
-  let m=null; if (mascotPrefs().show){ m=mascotEl(expr,132); ring.append(el("span",{class:"hshadow"}), m); }
+  let m=null; if (mascotPrefs().show){ let cl=""; try { cl=nubeClima(k).clima; } catch(e){}
+    const ex = cl && nubeFit(expr, cl).nivel==="odd" ? nubePick("nada", cl).expr : expr;
+    m=mascotEl(ex,132,cl); if (cl) box.dataset.clima=cl; ring.append(el("span",{class:"hshadow"}), m); }
   const val=el("div",{class:"hbig num",id:"heroVal"}); if (big) val.textContent=big; else val.replaceChildren(...moneyEl(Math.abs(N.B.left)));
   const row=el("div",{class:"hrow"}, N.none ? el("span",null,"Coloque sua renda no Planejamento") : N.perDay!=null ? el("span",{class:"num"},`${brl(N.perDay)} por dia`) : "", N.none?"":el("span",{class:"hchip",id:"heroChip"},N.chip));
   const say=el("p",{class:"say",id:"helloTxt"}); say.append(el("span",{class:"hi"},H.greet)); const main=el("span",{class:"oi"}); main.innerHTML=H.html; say.append(main);
@@ -5051,7 +5070,7 @@ function nubeEl(expr, o){
   const w=el("span",{class:"msc nube"+((o.size||56)<=48?" small":""),"data-e":expr,"data-a":MASCOT_ANIM[expr]||"idle","data-pal":pal,"data-clima":clima,
     style:nubeVars(P,clima)+(o.size?`width:${o.size}px;height:${o.size}px`:"")});
   if (o.brecha) w.dataset.brecha="1";
-  w.innerHTML=`<svg viewBox="0 0 256 256" role="img" aria-label="Nube ${MASCOT_LBL[expr]||expr}${clima?", "+NUBE_CLIMAS[clima].nome.toLowerCase():""}" focusable="false"><g class="nback">${NUBE_BACK}</g><g class="nfl"><g class="all">${NUBE_BODY}${nubeFace(expr,pal)}</g></g><g class="nfront">${NUBE_FRONT}</g></svg>`;
+  w.innerHTML=(`<svg viewBox="0 0 256 256" role="img" aria-label="Nube ${MASCOT_LBL[expr]||expr}${clima?", "+NUBE_CLIMAS[clima].nome.toLowerCase():""}" focusable="false"><g class="nback">${NUBE_BACK}</g><g class="nfl"><g class="all">${NUBE_BODY}${nubeFace(expr,pal)}</g></g><g class="nfront">${NUBE_FRONT}</g></svg>`).replace(/>\s+</g,"><");
   return w;
 }
 // troca de expressão com uma "piscada" (o rosto se ajeita) e troca de clima com transição suave de cor e de elementos
@@ -5209,7 +5228,7 @@ function openNubeTest(){
   // redesenha tudo (troca de paleta ou de modo); troca de clima/expressão só anima o que já está na tela
   function draw(){
     const P=NUBE_PAL[st.pal]; stage.style.background=P.bg; small.style.background=P.bg; bubble.style.background=P.bubble;
-    big=nubeEl(st.expr,{pal:st.pal, clima:st.clima, size:200, brecha:st.brecha}); const old=mascotEl(st.expr,130); old.classList.add("force");
+    big=nubeEl(st.expr,{pal:st.pal, clima:st.clima, size:200, brecha:st.brecha}); const old=mascotOld(st.expr,130); old.classList.add("force");
     rc(stage, ...(st.view==="lado" ? [el("div",{class:"ncol"},old,el("small",null,"Atual")), el("div",{class:"ncol"},big,el("small",null,"Nube"))] : [el("div",{class:"ncol"},big)]));
     drawSmall(); drawIcons(); marks(); setTimeout(()=>nubePlay(big), 60);
   }
@@ -5219,7 +5238,7 @@ function openNubeTest(){
     const ev=st.evento && NUBE_EVENTOS[st.evento];
     rc(bubble, nubeEl(st.expr,{...o,size:46}), el("span",null, ev ? st.fala : (st.clima?NUBE_CLIMAS[st.clima].txt:"Bom dia! Já viu seus gastos de hoje?")));
   }
-  function update(anim){ if (!big) return draw(); nubeSetClima(big, st.clima, st.expr, st.brecha); if (st.view==="lado"){ const old=stage.querySelector(".msc:not(.nube)"); if (old && old.dataset.e!==st.expr){ old.replaceWith(Object.assign(mascotEl(st.expr,130),{})); } } drawSmall(); marks(); }
+  function update(anim){ if (!big) return draw(); nubeSetClima(big, st.clima, st.expr, st.brecha); if (st.view==="lado"){ const old=stage.querySelector(".msc:not(.nube)"); if (old && old.dataset.e!==st.expr){ old.replaceWith(mascotOld(st.expr,130)); } } drawSmall(); marks(); }
   function drawIcons(){
     rc(icons, ...Object.keys(NUBE_ICON_COMP).map(c=>el("div",{class:"ncol"}, nubeIconImg(st.pal,c,76), el("small",null,NUBE_ICON_COMP[c].nome))));
     rc(home, ...Object.keys(NUBE_PAL).flatMap(p=>Object.keys(NUBE_ICON_COMP).map(c=>el("div",{class:"napp"+(p===st.pal?" sel":"")}, nubeIconImg(p,c,60), el("span",null,c+" · "+NUBE_PAL[p].nome.replace("Cereja · ","Cer. ").replace("Azul · ","Azul ").replace("cinza claro","cinza"))))));
@@ -5232,10 +5251,10 @@ function openNubeTest(){
   const now=(()=>{ try { return nubeClima(state.cur||thisMonth()); } catch(e){ return null; } })();
   const seq=(t,steps)=>el("button",{class:"btn small ghost",onclick:()=>{ if(!big) return; st.evento=""; st.brecha=false; nubeSequence(big, steps, 2600); const last=steps[steps.length-1]; st.clima=last.clima; st.expr=last.expr; setTimeout(()=>{ drawSmall(); marks(); }, 2600*(steps.length-1)+50); }},t);
   const panel=el("div",{class:"panel nubetest",role:"dialog","aria-label":"Testar o Nube"},
-    el("div",{class:"hd"},el("h2",null,"Nube (prévia)"),el("button",{class:"close","aria-label":"Fechar",onclick:()=>sh.remove()},"✕")),
-    el("p",{class:"sm muted",style:"margin:0"},"Só um teste: nada muda no app nem nos seus dados. O mascote e o ícone atuais continuam."),
+    el("div",{class:"hd"},el("h2",null,"Nube"),el("button",{class:"close","aria-label":"Fechar",onclick:()=>sh.remove()},"✕")),
+    el("p",{class:"sm muted",style:"margin:0"},"Aqui você testa climas, expressões e animações. Nada muda nos seus dados."),
     el("div",{class:"chips"}, ...Object.entries(NUBE_PAL).map(([k,p])=>chip("pal",k,p.nome))),
-    el("div",{class:"chips"}, chip("view","so","Só o Nube"), chip("view","lado","Comparar com o atual")),
+    el("div",{class:"chips"}, chip("view","so","Só o Nube"), chip("view","lado","Comparar com o antigo")),
     stage, lbl, fit,
     el("div",{class:"actions",style:"justify-content:center;flex-wrap:wrap"}, el("button",{class:"btn small",id:"nubeReplay",onclick:()=>nubePlay(big)},"Repetir animação"),
       seq("Chuva passando → sol",[{clima:"chuvoso",expr:"preocupado"},{clima:"nublado",expr:"pensando"},{clima:"parcial",expr:"curioso"},{clima:"ensolarado",expr:"satisfeito"}]),
@@ -5297,7 +5316,7 @@ state.demo = false; state.view="inicio"; render();
 })();
 
 // exposto para teste
-window.__sobrou = {NUBE_PAL, NUBE_CLIMAS, NUBE_FIT, NUBE_EVENTOS, NUBE_ORDEM, NUBE_ICON_COMP, nubeFit, nubePick, nubeIcon, nubeSequence, nubeSetExpr, nubeEl, nubeSetClima, nubePlay, nubeClima, openNubeTest, MASCOT_LBL, CATS, geral, computeAmb, isPending, catSelect, limitStatus, limitsList, preMigReemb, devOf, inheritParc, limSpend, previstoList, renderPrevisto, fixedList, detectFixed, fixKey, summarize, normMonths, parseChat, chatSave, openChat, sharedParc, parcLine, parcSuggest, budget, openSharedNew, renderCompart, thisMonth, monthsAhead, makePushCode, ghSecretsUrl, renderLembrete, saveConfig, saveShared, backupData, localISO, categorize, icoSVG, saveGoals, saveSavings, saveBalances, openIfoodSaldo, openMascotTest, playMascot, seenGet, helloData, helloCandidates, mascotWatch, WATCH, showReaction, txEvent, importEvent, catShare, ifoodSaldo, limitStatus, oiHist, state, render, parseLines, parseCSV, parseOFX, categorize, keyOf, summarize, budget, detectFixed, findDups, missingCards, lsLoad, normMonths, savedToCofre, computeAmb, isPending, recat, go,
+window.__sobrou = {mascotOld, NUBE_ON, NUBE_PAL, NUBE_CLIMAS, NUBE_FIT, NUBE_EVENTOS, NUBE_ORDEM, NUBE_ICON_COMP, nubeFit, nubePick, nubeIcon, nubeSequence, nubeSetExpr, nubeEl, nubeSetClima, nubePlay, nubeClima, openNubeTest, MASCOT_LBL, CATS, geral, computeAmb, isPending, catSelect, limitStatus, limitsList, preMigReemb, devOf, inheritParc, limSpend, previstoList, renderPrevisto, fixedList, detectFixed, fixKey, summarize, normMonths, parseChat, chatSave, openChat, sharedParc, parcLine, parcSuggest, budget, openSharedNew, renderCompart, thisMonth, monthsAhead, makePushCode, ghSecretsUrl, renderLembrete, saveConfig, saveShared, backupData, localISO, categorize, icoSVG, saveGoals, saveSavings, saveBalances, openIfoodSaldo, openMascotTest, playMascot, seenGet, helloData, helloCandidates, mascotWatch, WATCH, showReaction, txEvent, importEvent, catShare, ifoodSaldo, limitStatus, oiHist, state, render, parseLines, parseCSV, parseOFX, categorize, keyOf, summarize, budget, detectFixed, findDups, missingCards, lsLoad, normMonths, savedToCofre, computeAmb, isPending, recat, go,
   nameOf, knownName, eff, needsReview, reviewList, takeSnap, restoreSnap, importsList, undoImport, pendingOf, paidOf, openTx, openSplit, openPayment, ICON_PACK, normShared, cofreTotal, allocTotal, cofreLivre, metaInfo, parcelList, upcoming, fixedList, fixedSuggestions, backupData, parseBackup, doRestore, exportBackup, goalsList,
   placeOf, spendOf, groupBy, anaTx, anaPeriod, compareMonths, limitStatus, limitNotes, limitsList, normLimits, normAnalise, insights, refundsOf, openLimit, backupCounts,
   SVG_ICONS, MASCOT, BANKS, bankOf, mascotEl, reactionFor, askSobrou, SobrouDados, decorate, unusualTx, normMascote,
