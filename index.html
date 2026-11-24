@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="sobrou-versao" content="v37">
+<meta name="sobrou-versao" content="v38">
 <meta name="description" content="Controle de gastos que lê o extrato e mostra quanto sobrou.">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
@@ -1147,7 +1147,7 @@ const num0 = x => { const v=+x; return isFinite(v)?v:0; };
 const OLD_CAT={"Delivery e restaurantes":"Comida fora",["Reem"+"bolso"]:"Devolução"}; const migCat=c=>OLD_CAT[c]||c;
 function normTx(t){ t={...t, cat:(t.cat==="Reem"+"bolso"&&+t.amount<0)?"Não é meu":(t.cat?migCat(t.cat):t.cat)}; return {...t, id:t.id||uid(), date:String(t.date), desc:String(t.desc||"Lançamento"), amount:Math.round(num0(t.amount)*100)/100, cat:t.cat||categorize(String(t.desc||""),num0(t.amount))}; }
 function normMonths(m){ preMigReemb(m); const out={}; if(m&&typeof m==="object") for(const [k,l] of Object.entries(m)){ if(!/^\d{4}-\d{2}$/.test(k)) continue; out[k]=asArr(Array.isArray(l)?l:l&&l.txns).filter(t=>t&&/^\d{4}-\d{2}-\d{2}$/.test(String(t.date))&&isFinite(+t.amount)).map(normTx); } return out; }
-function normBalances(b){ if(!b||typeof b!=="object") return null; const L=a=>asArr(a).filter(x=>x).map(x=>({name:String(x.name||""),value:num0(x.value)})); return {date:b.date||null, accounts:L(b.accounts), cards:L(b.cards), ifood:num0(b.ifood), ifoodAt:/^\d{4}-\d{2}-\d{2}$/.test(String(b.ifoodAt||""))?b.ifoodAt:null}; }
+function normBalances(b){ if(!b||typeof b!=="object") return null; const L=a=>asArr(a).filter(x=>x).map(x=>({name:String(x.name||""),value:num0(x.value)})); return {date:b.date||null, accounts:L(b.accounts), cards:L(b.cards), ifood:num0(b.ifood), ifoodAt:/^\d{4}-\d{2}-\d{2}$/.test(String(b.ifoodAt||""))?b.ifoodAt:null, ifoodTs:+b.ifoodTs>0?+b.ifoodTs:null}; }
 function normSavings(s){ return {items:asArr(s&&s.items).filter(it=>it&&it.name).map(it=>({...it,id:it.id||uid(),history:asArr(it.history).filter(h=>h&&h.date&&isFinite(+h.value)).map(h=>({date:String(h.date),value:+h.value}))})).filter(it=>it.history.length)}; }
 function normGoals(g){
   const okDue = d => /^\d{4}-\d{2}/.test(String(d||""));
@@ -2552,7 +2552,7 @@ function openLivre(){
   }
   const ifd=el("input",{value:fmtIn(b.ifood||0),inputmode:"decimal",id:"ifoodsaldo"});
   box.append(group("Saldo nas contas","accounts"), group("Faturas abertas","cards"), el("label",{class:"field"},"Saldo do iFood Benefícios",ifd));
-  const go=el("button",{class:"btn",onclick:()=>{ if(!canWrite()) return; b.accounts=b.accounts.filter(x=>x.name.trim()); b.cards=b.cards.filter(x=>x.name.trim()); b.ifood=parse(ifd.value); b.date=localISO(); b.at=Date.now(); b.ifoodAt=localISO(); state.balances=b; saveBalances(); close(); render(); toast("Saldos novinhos, anotados."); }},"Salvar saldos de hoje");
+  const go=el("button",{class:"btn",onclick:()=>{ if(!canWrite()) return; b.accounts=b.accounts.filter(x=>x.name.trim()); b.cards=b.cards.filter(x=>x.name.trim()); b.ifood=parse(ifd.value); b.date=localISO(); b.at=Date.now(); b.ifoodAt=localISO(); b.ifoodTs=Date.now(); state.balances=b; saveBalances(); close(); render(); toast("Saldos novinhos, anotados."); }},"Salvar saldos de hoje");
   const sh=el("div",{class:"sheet",onclick:e=>{ if(e.target===sh) close(); }},
     el("div",{class:"panel",role:"dialog","aria-label":"Atualizar saldos"},
       el("div",{class:"hd"},el("h2",null,"Atualizar saldos"),el("button",{class:"close","aria-label":"Fechar",onclick:close},"✕")),
@@ -4303,7 +4303,10 @@ function ifoodSaldo(){
   const b=state.balances; if (!b) return {informed:false, value:null, date:null, age:null};
   const date=b.ifoodAt || (num0(b.ifood)>0 ? b.date : null);
   const informed=!!b.ifoodAt || num0(b.ifood)>0;
-  return {informed, value: informed ? r2(num0(b.ifood)) : null, date, age: date ? Math.round((new Date(localISO())-new Date(date))/864e5) : null};
+  // anda sozinho: parte do último saldo digitado e soma o que entrou/saiu no iFood depois dele
+  const moved = informed && date ? Object.values(state.months).flat().filter(t=>t.acct===IFOOD && (t.date>date || (t.date===date && b.ifoodTs && t.ts && t.ts>b.ifoodTs))) : [];
+  const delta = r2(moved.reduce((a,t)=>a+t.amount,0)); const base = informed ? r2(num0(b.ifood)) : null;
+  return {informed, base, delta, moved:moved.length, value: informed ? r2(base+delta) : null, date, age: date ? Math.round((new Date(localISO())-new Date(date))/864e5) : null};
 }
 function openIfoodSaldo(){
   if (!canWrite()) return; const S=ifoodSaldo();
@@ -4314,7 +4317,7 @@ function openIfoodSaldo(){
       const v=parseMoney(raw); if (!(v>=0) || isNaN(v)){ toast("Não entendi esse valor."); return; }
       const sn=takeSnap();
       const b = state.balances ? {...state.balances} : {date:null, accounts:[], cards:[], ifood:0};
-      b.ifood=r2(v); b.ifoodAt=localISO(); state.balances=b; saveBalances(); close(); render(); toastUndo("Saldo do iFood anotado.", sn);
+      b.ifood=r2(v); b.ifoodAt=localISO(); b.ifoodTs=Date.now(); state.balances=b; saveBalances(); close(); render(); toastUndo("Saldo do iFood anotado.", sn);
     };
     rc(panel, head("Atualizar saldo do iFood",close),
       el("p",{class:"muted sm",style:"margin:0"},"Abra o app do iFood Benefícios e copie o saldo de agora. É o mesmo saldo que aparece em Contas e cartões."),
@@ -4327,11 +4330,9 @@ function renderIfoodSaldo(){
   const S=ifoodSaldo(), big=$("#ifSaldoBig"), t=$("#ifSaldoTxt"); if (!big) return;
   if (!S.informed){ big.className="big num muted"; big.textContent="—"; t.textContent="Saldo ainda não informado."; }
   else { big.className="big num"; big.replaceChildren(...moneyEl(S.value)); t.textContent = (S.value===0?"Saldo zerado. ":"") + (S.date ? `Atualizado em ${fmtD(S.date)}${S.age===0?" (hoje)":S.age===1?" (ontem)":` (há ${S.age} dias)`}.` : "Sem data de atualização."); }
-  // gastos depois da atualização: só informa, não desconta sozinho
-  const after=$("#ifSaldoAfter"); const since=S.date;
-  if (S.informed && since){ const l=[]; for (const mk in state.months) for (const x of state.months[mk]) if (x.acct===IFOOD && x.amount<0 && x.date>since) l.push(x);
-    const v=r2(l.reduce((a,x)=>a-x.amount,0)); after.hidden=!l.length;
-    if (l.length) after.textContent=`Depois de ${fmtD(since)} entraram ${l.length} gasto${l.length>1?"s":""} do iFood (${brl(v)}). O saldo acima não desconta isso sozinho: atualize quando conferir no app.`; }
+  // o saldo já desconta o que foi lançado depois da última atualização
+  const after=$("#ifSaldoAfter");
+  if (S.informed && S.moved){ after.hidden=false; after.textContent=`${brl(S.base)} que você digitou em ${fmtD(S.date)}, ${S.delta<0?"menos":"mais"} ${brl(Math.abs(S.delta))} lançado${S.moved>1?"s":""} depois. Se não bater com o app do iFood, toque em Atualizar saldo.`; }
   else after.hidden=true;
   mascotSay("#ifSay","ifood",state.cur);
 }
