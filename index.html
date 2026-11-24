@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="sobrou-versao" content="v41">
+<meta name="sobrou-versao" content="v42">
 <meta name="description" content="Controle de gastos que lê o extrato e mostra quanto sobrou.">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
@@ -25,7 +25,7 @@
 :root{
   --bg:#F3F5FA; --surface:#FFFFFF; --ink:#1A2452; --muted:#5E6582; --line:#DDE2EE;
   --save:#3658BD; --save-soft:#FFFFFF; --spend:#8C93AB; --spend-soft:#E3E7F1; --chip:#E9EDF6;
-  --brand:#3658BD; --brand-ink:#FFFFFF;
+  --brand:#3658BD; --brand-ink:#FFFFFF; --accent:#A62640;
   --display:"Bricolage Grotesque",ui-rounded,"Segoe UI",system-ui,sans-serif;
   --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -752,6 +752,11 @@ textarea{font:inherit}
 .hello.hero .hring-arc{stroke:var(--brand)}
 .hello.hero .msc.nube ~ .hshadow,.hello.hero .hshadow{display:none}
 .nubetest .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+/* cereja nos detalhes: logo, aba atual, selo do Início e prioridade máxima dos Desejos */
+.brand span{color:var(--accent)}
+.bnav button[aria-current="page"]{color:var(--accent)}
+.hello.hero .hchip{background:var(--accent);border-color:var(--accent)}
+.prio.p-muito{background:var(--accent);border-color:var(--accent)}
 </style>
 
 <div class="wrap" id="app">
